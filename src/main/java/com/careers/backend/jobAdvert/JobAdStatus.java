@@ -1,4 +1,4 @@
-package com.careers.backend;
+package com.careers.backend.jobAdvert;
 
 public enum JobAdStatus {
     LIVE,
