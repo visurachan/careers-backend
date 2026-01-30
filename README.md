@@ -12,7 +12,7 @@ This backend application facilitates the employers to post job openings, candida
 - Spring boot 3.4.2
 - Maven
 - PostgreSQL
-- Testing (JUnit)
+- Testing (JUnit/Mockito)
 - Swagger UI (API documentation and testing)
 - AWS S3 (CV upload)
 - Github Actions for CI/CD
