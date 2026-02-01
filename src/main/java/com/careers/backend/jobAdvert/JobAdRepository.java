@@ -1,11 +1,7 @@
 package com.careers.backend.jobAdvert;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
-
-@Repository
-public interface JobAdRepository {
-
-    Optional<JobAdvert> findById(String id);
+public interface JobAdRepository extends JpaRepository<JobAdvert, String> {
+    
 }

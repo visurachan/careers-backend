@@ -1,10 +1,20 @@
 package com.careers.backend.jobAdvert;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Entity
 public class JobAdvert {
+
+    @Id
+
     private String id;
+
     private String title;
     private String description;
     private String location;
