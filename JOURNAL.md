@@ -38,3 +38,17 @@ Implemented repository layer for viewing a job by id using TDD approach
 - Prepare the DB using AWS RDS
 - Make the app live
   
+## 11/02/2026
+
+### Main work done
+Error handling and documentation for the controller which returns a job advert with specific id
+
+### Work done
+- Global Error Handling: Implemented a @RestControllerAdvice to map specific exceptions to professional HTTP status codes (400, 404, and 500).
+- Documentation: Enhanced Swagger UI by adding @ApiResponses to describe all possible success and error scenarios.
+
+### Immediate next steps
+- Implement the DB using AWS RDS
+- MAke the app live
+
+
