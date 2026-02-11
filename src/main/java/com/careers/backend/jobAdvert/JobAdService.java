@@ -13,8 +13,19 @@ public class JobAdService {
         this.repository = repository;
     }
     public JobAdvert getJobAdById(String id) {
-        return repository.findById(id)
+        // 1. Trigger the 400 Bad Request Handler
+
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("Job ID cannot be null or empty");
+        }
+
+        // 2. Trigger the 404 Not Found Handler
+
+        JobAdvert jobAd = repository.findById(id)
                 .orElseThrow(() -> new JobAdNotFoundException(id));
+
+
+        return jobAd;
     }
 
 }
