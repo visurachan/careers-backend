@@ -58,7 +58,7 @@ public class JobAdController {
     public JobAdDTO getJobById(
             @Parameter(
                     description = "Unique identifier of the job advert",
-                    example = "001"
+                    example = "job1git "
             )
             @PathVariable String id){
         JobAdvert jobAd = service.getJobAdById(id);

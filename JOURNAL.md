@@ -52,3 +52,35 @@ Error handling and documentation for the controller which returns a job advert w
 - MAke the app live
 
 
+
+## 12/02/2026
+
+### Main Work done
+
+Made the project live with a single controller
+
+### Work Done
+
+- Configured AWS RDS PostgreSQL as the production database for the backend
+- Connected the Spring Boot application to AWS RDS using environment variables for secure credential management
+- Dockerized the backend application for consistent deployment
+- Deployed the Dockerized backend via GitHub to the hosting platform
+- Verified successful database connectivity in production environment
+- Tested the live endpoint using Swagger UI 
+- Viewed job advertisement details for a specific id using Swagger UI on the live deployment
+
+Swagger UI (Production):
+https://careers-backend-5enq.onrender.com/swagger-ui/index.html
+
+Note: Since the application is hosted on Render free tier, wait until Render initializes the service if it was in sleep mode before testing.
+
+Spring Security credentials for testing:
+
+Username: test
+Password: test
+
+### Immediate next steps
+- Set up GitHub Actions for CI/CD before implementing additional controllers and features
+- Automate build and Docker image creation using GitHub workflows
+- Continue implementing remaining controllers following the same TDD approach
+
