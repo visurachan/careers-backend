@@ -1,34 +1,40 @@
 package com.careers.backend;
 
-
+import com.careers.backend.jobAdvert.JobAdvert;
+import com.careers.backend.jobAdvert.JobAdRepository;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("dev")
 class BackendApplicationTests {
 
     @Autowired
-    private TestRestTemplate restTemplate;  // Now autowiring works correctly
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private JobAdRepository repository;
+
+    @BeforeEach
+    void setUp() {
+        repository.deleteAll();
+        JobAdvert testJob = new JobAdvert("99", "Test Developer Position");
+        repository.save(testJob);
+    }
 
     @Test
-    void shouldReturnAJobAdvertWhenDataIsSaved() {
-        ResponseEntity<String> response = restTemplate.withBasicAuth("test","test").getForEntity("/jobads/99", String.class);
-        System.out.println("Response status: " + response.getStatusCode());
-        System.out.println("Response body: " + response.getBody());
+    void shouldReturnAJobAdvertWhenDataExists() {
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("test", "test")
+                .getForEntity("/api/jobAds/99", String.class);  // Changed URL!
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
@@ -39,11 +45,10 @@ class BackendApplicationTests {
 
     @Test
     void shouldNotReturnAJobAdvertWithAnUnknownId() {
-        ResponseEntity<String> response = restTemplate.withBasicAuth("test","test").getForEntity("/jobads/1000", String.class);
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("test", "test")
+                .getForEntity("/api/jobAds/1000", String.class);  // Changed URL!
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        System.out.println(response.getBody());
     }
-
 }
-
