@@ -9,12 +9,17 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 
 
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -58,6 +63,22 @@ class JobAdControllerTest {
 
         mockMvc.perform(get("/api/jobAds/99"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnAllJobs() throws Exception {
+        JobAdvert jobAd1 = new JobAdvert("job1","Java Developer");
+        JobAdvert jobAd2 =  new JobAdvert("jobAd2","Python Developer");
+        List<JobAdvert> jobList = Arrays.asList(jobAd1,jobAd2);
+
+        when(service.getAllJobAds()).thenReturn(jobList);
+
+        mockMvc.perform(get("/api/jobAds"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].title").value("Java Developer"))
+                .andExpect(jsonPath("$[1].title").value("Python Developer"));
     }
 
 

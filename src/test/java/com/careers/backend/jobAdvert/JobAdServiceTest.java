@@ -5,12 +5,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.autoconfigure.batch.BatchProperties;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class JobAdServiceTest {
@@ -37,6 +41,23 @@ class JobAdServiceTest {
 
         assertThatThrownBy(() -> service.getJobAdById("99"))
                 .isInstanceOf(JobAdNotFoundException.class);
+    }
+
+    @Test
+    void shouldReturnAllJobAds(){
+        JobAdvert jobAd1 = new JobAdvert("job1","Java Developer");
+        JobAdvert jobAd2 = new JobAdvert("job2","Python Developer");
+        List<JobAdvert> jobList = Arrays.asList(jobAd1,jobAd2);
+
+        when(repository.findAll()).thenReturn(jobList);
+
+        List<JobAdvert> result = service.getAllJobAds();
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getTitle()).isEqualTo("Java Developer");
+        assertThat(result.get(1).getTitle()).isEqualTo("Python Developer");
+
+
     }
 }
 

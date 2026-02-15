@@ -3,6 +3,8 @@ package com.careers.backend.jobAdvert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 public class JobAdService {
@@ -27,5 +29,11 @@ public class JobAdService {
 
         return jobAd;
     }
+
+    public List<JobAdvert> getAllJobAds() {
+        return repository.findAll();
+    }
+
+
 
 }

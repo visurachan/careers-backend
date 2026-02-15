@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/jobAds")
 @Tag(name="Job advert APIs", description = "Operations related to job advertisements")
@@ -63,6 +66,39 @@ public class JobAdController {
             @PathVariable String id){
         JobAdvert jobAd = service.getJobAdById(id);
         return new JobAdDTO(jobAd.getId(), jobAd.getTitle(), jobAd.getDescription(), jobAd.getLocation(), jobAd.getExpiryDate());
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Get all job adverts",
+            description = "Retrieves a list of all job advertisements"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully retrieved list of job adverts",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = JobAdDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error",
+                    content = @Content(mediaType = "application/json")
+            )
+    })
+    public List<JobAdDTO> getAllJobs() {
+        List<JobAdvert> jobs = service.getAllJobAds();
+        return jobs.stream()
+                .map(job -> new JobAdDTO(
+                        job.getId(),
+                        job.getTitle(),
+                        job.getDescription(),
+                        job.getLocation(),
+                        job.getExpiryDate()
+                ))
+                .collect(Collectors.toList());
     }
 }
 
