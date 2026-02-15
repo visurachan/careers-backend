@@ -3,8 +3,14 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'JOURNAL.md'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '**.md'
+      - 'JOURNAL.md'
 
 jobs:
   test:
