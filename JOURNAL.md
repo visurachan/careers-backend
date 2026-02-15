@@ -84,3 +84,93 @@ Password: test
 - Automate build and Docker image creation using GitHub workflows
 - Continue implementing remaining controllers following the same TDD approach
 
+
+
+# 15/02/2026
+
+### Main Work Done
+
+Successfully implemented CI/CD pipeline with GitHub Actions and established comprehensive test infrastructure using H2 in-memory database.
+
+### Work Done
+
+#### Test Infrastructure Setup
+- Attempted TestContainers for PostgreSQL integration tests but encountered Docker connectivity issues on Windows development environment
+- Pivoted to H2 in-memory database for testing - industry-standard approach for CI/CD environments
+- Created separate test configuration file (`src/test/resources/application.properties`) with H2 database settings
+- Configured test-specific Spring Security credentials (username: test, password: test)
+- Updated all integration tests to be self-contained by creating their own test data using `@BeforeEach'
+- Achieved 100% test success rate: **7/7 tests passing** (2 integration, 2 controller, 1 repository, 2 service)
+
+#### CI/CD Pipeline Implementation
+- Created `.github/workflows/ci-cd.yml` for automated build and deployment
+- Configured GitHub Actions workflow to:
+    - Run all tests automatically on every push to main branch
+    - Use Java 21 (Temurin distribution) on Ubuntu runners
+    - Execute Maven test suite with H2 database
+    - Build application JAR to verify compilation
+    - Trigger Render deployment only after successful tests
+- Set up Render deploy hook as GitHub repository secret (`RENDER_DEPLOY_HOOK`)
+- Configured Render to deploy "After CI tests pass" instead of automatic deployment
+- Verified complete pipeline: code push → automated tests → build verification → production deployment
+
+#### Technical Decisions & Rationale
+**Test Database Strategy:**
+- Development: PostgreSQL (Docker local)
+- Testing: H2 (in-memory)
+- Production: PostgreSQL (AWS RDS)
+
+This separation ensures:
+- Fast test execution without external dependencies
+- Platform-independent testing (works on any OS)
+- No database setup required in CI/CD environment
+- Zero cost for test database infrastructure
+
+**CI/CD Benefits Achieved:**
+- Automated quality gate prevents broken code from reaching production
+- Can deploy multiple times per day with confidence
+- Full deployment history and traceability
+- Zero-downtime deployments
+
+
+### Verification & Results
+
+**Live Pipeline Demonstration:**
+- Repository: https://github.com/[username]/careers-backend
+- GitHub Actions: Successfully running on every push
+- Latest deployment: Triggered automatically after tests passed
+- Production URL: https://careers-backend-5enq.onrender.com/swagger-ui/index.html
+
+**Test Execution Metrics:**
+- Total tests: 7
+- Pass rate: 100%
+- Build time: ~17 seconds
+- Environment: Ubuntu (GitHub-hosted runner)
+
+
+### Immediate Next Steps
+- Implement GET /api/jobAds endpoint (list all job advertisements) using TDD approach
+- Write service test → implement service method → write controller test → implement controller
+- Add pagination support in future iteration
+- Continue incremental deployment through CI/CD pipeline
+- Each feature will automatically test and deploy when pushed to main branch
+
+### Technical Stack Validated
+- ✅ Java 21 with Spring Boot 3.4.2
+- ✅ JUnit 5 + Mockito for testing
+- ✅ H2 for test database
+- ✅ PostgreSQL (AWS RDS) for production
+- ✅ GitHub Actions for CI/CD
+- ✅ Docker for containerization
+- ✅ Render for cloud deployment
+- ✅ Maven for build automation
+
+---
+
+**Status at End of Day:**
+- ✅ CI/CD pipeline fully operational
+- ✅ All tests passing in automated environment
+- ✅ Production deployment automated
+- ✅ Ready to begin TDD development of next feature
+- ✅ Professional development workflow established
+
