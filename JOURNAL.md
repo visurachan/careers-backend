@@ -174,3 +174,27 @@ This separation ensures:
 - ✅ Ready to begin TDD development of next feature
 - ✅ Professional development workflow established
 
+# 15/02/2026 (Continued)
+
+### Work Done
+
+Successfully implemented GET /api/jobAds endpoint using TDD approach:
+
+- Wrote service test → implemented `getAllJobAdverts()` method
+- Wrote controller test → implemented GET endpoint with DTO transformation
+- Wrote integration test → verified full HTTP request/response cycle
+- All 10 tests passing locally
+- Committed and pushed to GitHub
+- CI/CD automatically ran tests and deployed successfully
+- Feature now live in production
+
+### Additional Updates
+
+- Modified `.github/workflows/ci-cd.yml` to skip CI/CD for markdown file changes
+- Added `paths-ignore` for `**.md` files
+- Documentation updates no longer trigger builds or deployments
+
+### Status
+- Tests: 10/10 passing ✅
+- Endpoints live: 2 (GET by ID, GET all)
+- CI/CD: Optimized and working
