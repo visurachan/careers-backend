@@ -22,15 +22,30 @@ Swagger UI (Production):
 
 ---
 
-## 🚀 Current Status
+## 📊 Project Roadmap
 
-- Live backend deployed
-- Connected to AWS RDS PostgreSQL (production database)
-- Dockerized and deployed via GitHub
-- One fully implemented controller (Job Advert – view by ID)
-- Global exception handling and API documentation completed
-- CI/CD setup in progress (GitHub Actions)
+### ✅ Completed
+- Basic job advertisement CRUD (GET by ID)
+- CI/CD pipeline with GitHub Actions
+- Docker containerization
+- Production deployment
+- Comprehensive test suite
+- API documentation
 
+### 🔄 In Progress
+- List all jobs endpoint (GET /api/jobAds)
+- Pagination support
+
+### 📋 Planned (Next 2-4 Weeks)
+- JWT-based authentication
+- User registration (Employer/Candidate roles)
+- Job posting (POST /api/jobAds)
+- Job application submission
+- Application management dashboard
+- CV upload to AWS S3
+- Email notifications
+
+---
 The system is designed to expand incrementally with additional features.
 
 ---
@@ -38,13 +53,13 @@ The system is designed to expand incrementally with additional features.
 ## 🛠 Tech Stack
 
 - Java 21
-- Spring Boot 3
+- Spring Boot 3.4
 - Maven
 - PostgreSQL (AWS RDS)
 - Docker
 - Swagger / OpenAPI
 - JUnit & Mockito
-- GitHub Actions (CI/CD – in progress)
+- GitHub Actions (CI/CD pipe line)
 - Render (Deployment)
 - AWS S3 (Planned for CV uploads)
 
