@@ -65,6 +65,21 @@ The system is designed to expand incrementally with additional features.
 
 ---
 
+## 🔄 CI/CD Pipeline
+
+Every code push triggers an automated workflow:
+```
+Code Push → GitHub Actions
+    ↓
+Run All Tests (H2)
+    ↓
+Build Verification
+    ↓
+Tests Pass? → Deploy to Render
+    ↓
+Production Updated ✅
+```
+
 ## 🏗 Engineering Approach
 
 This project simulates a real-world backend development workflow:
