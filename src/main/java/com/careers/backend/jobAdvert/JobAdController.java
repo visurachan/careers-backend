@@ -7,11 +7,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -99,6 +97,37 @@ public class JobAdController {
                         job.getExpiryDate()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping
+    @Operation(
+            summary = "Create a new job advertisement",
+            description = "Creates a new job ad. Status is automatically set to LIVE and posted date/time is set by the server."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Job advertisement successfully created",
+                    content = @Content(schema = @Schema(implementation = JobAdDtoAllFields.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid request body"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized - invalid credentials"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest){
+        JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
+
+
     }
 }
 

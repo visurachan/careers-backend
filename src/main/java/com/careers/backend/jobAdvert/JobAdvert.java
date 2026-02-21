@@ -30,6 +30,16 @@ public class JobAdvert {
         this.title = title;
     }
 
+    public JobAdvert(String id, String title, String description, String location, LocalDate expiryDate, LocalDateTime postedDateTime, JobAdStatus jobAdStatus) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.location = location;
+        this.expiryDate = expiryDate;
+        this.postedDateTime = postedDateTime;
+        this.jobAdStatus = jobAdStatus;
+    }
+
     public String getId() {
         return id;
     }

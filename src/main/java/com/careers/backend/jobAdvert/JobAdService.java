@@ -3,6 +3,7 @@ package com.careers.backend.jobAdvert;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,6 +15,8 @@ public class JobAdService {
     public JobAdService(JobAdRepository repository) {
         this.repository = repository;
     }
+
+
     public JobAdvert getJobAdById(String id) {
         // 1. Trigger the 400 Bad Request Handler
 
@@ -32,6 +35,30 @@ public class JobAdService {
 
     public List<JobAdvert> getAllJobAds() {
         return repository.findAll();
+    }
+
+    public JobAdDtoAllFields createNewJob(JobAdDTO request) {
+        JobAdvert entity = new JobAdvert(
+                request.id(),
+                request.title(),
+                request.description(),
+                request.location(),
+                request.expiryDate(),
+                LocalDateTime.now(),
+                JobAdStatus.LIVE
+        );
+
+        JobAdvert saved = repository.save(entity);
+
+        return new JobAdDtoAllFields(
+                saved.getId(),
+                saved.getTitle(),
+                saved.getDescription(),
+                saved.getLocation(),
+                saved.getExpiryDate(),
+                saved.getPostedDateTime(),
+                saved.getJobAdStatus()
+        );
     }
 
 

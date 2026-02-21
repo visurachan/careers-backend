@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -77,5 +76,39 @@ class BackendApplicationTests {
         // Verify second job
         String id2 = documentContext.read("$[1].id");
         assertThat(id2).isEqualTo("100");
+    }
+
+    @Test
+    void shouldCreateNewJobAdvert() {
+        // Arrange
+        String jobJson = """
+        {
+            "id": "200",
+            "title": "Civil Engineer",
+            "description": "Building Construction expert needed",
+            "location": "Colombo",
+            "expiryDate": "2026-06-30"
+        }
+        """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(jobJson, headers);
+
+        // Act
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("test", "test")
+                .postForEntity("/api/jobAds", request, String.class);
+
+        System.out.println(response.getBody());
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        DocumentContext documentContext = JsonPath.parse(response.getBody());
+        String id = documentContext.read("$.id");
+        String title = documentContext.read("$.title");
+
+        assertThat(id).isEqualTo("200");
+        assertThat(title).isEqualTo("Civil Engineer");
     }
 }
