@@ -1,15 +1,13 @@
 package com.careers.backend.jobAdvert;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-public class JobAdvert {
+public class JobAdvert implements Persistable<String> {
 
     @Id
 
@@ -21,6 +19,9 @@ public class JobAdvert {
     private LocalDate expiryDate;
     private LocalDateTime postedDateTime;
     private JobAdStatus jobAdStatus;
+
+    @Transient
+    private boolean isNew = true;
 
     public JobAdvert() {
     }
@@ -38,11 +39,19 @@ public class JobAdvert {
         this.expiryDate = expiryDate;
         this.postedDateTime = postedDateTime;
         this.jobAdStatus = jobAdStatus;
+        this.isNew = true;
     }
-
+    @Override
     public String getId() {
         return id;
     }
+
+    @Override
+    public boolean isNew(){return isNew;}
+
+    @PostLoad
+    @PostPersist
+    void markNotNew() {this.isNew =false;}
 
     public void setId(String id) {
         this.id = id;
