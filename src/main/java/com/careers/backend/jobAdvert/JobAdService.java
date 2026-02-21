@@ -38,6 +38,8 @@ public class JobAdService {
     }
 
     public JobAdDtoAllFields createNewJob(JobAdDTO request) {
+        System.out.println("Service createNewJob hit - id: " + request.id());
+
         JobAdvert entity = new JobAdvert(
                 request.id(),
                 request.title(),
@@ -48,7 +50,11 @@ public class JobAdService {
                 JobAdStatus.LIVE
         );
 
+        System.out.println("Entity isNew: " + entity.isNew());
+
         JobAdvert saved = repository.save(entity);
+
+        System.out.println("Save completed - id: " + saved.getId());
 
         return new JobAdDtoAllFields(
                 saved.getId(),
