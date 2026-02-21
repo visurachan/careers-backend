@@ -198,3 +198,89 @@ Successfully implemented GET /api/jobAds endpoint using TDD approach:
 - Tests: 10/10 passing ✅
 - Endpoints live: 2 (GET by ID, GET all)
 - CI/CD: Optimized and working
+
+
+# 21/02/2026
+
+### Main Work Done
+
+Implemented POST /api/jobAds endpoint using TDD approach. Encountered and resolved a critical data persistence bug in production despite all tests passing.
+
+### Work Done
+
+#### TDD Implementation
+- Wrote integration test first as failing acceptance criteria (outside-in TDD)
+- Wrote controller test with mocked service layer using `@WebMvcTest`
+- Wrote service test with mocked repository using `@ExtendWith(MockitoExtension.class)`
+- Implemented each layer to make tests green: controller → service → repository
+- Integration test went green last confirming full stack wired correctly
+- All tests passing locally with H2 in-memory database
+
+#### CI/CD & Deployment
+- Pushed to GitHub triggering GitHub Actions workflow
+- All tests passed automatically in CI pipeline
+- Render deployment triggered automatically after tests passed
+- Endpoint live at https://careers-backend-5enq.onrender.com/swagger-ui/index.html
+
+#### Production Bug — Data Not Persisting Despite 201 Response
+
+Although all tests passed and the endpoint was successfully deployed, a critical bug was discovered in production: POST requests were returning a correct `201 Created` response with the full response body, but the data was never actually being written to the AWS RDS PostgreSQL database.
+
+**Why the response body was still returning correctly:**
+
+The service was building the response from the in-memory entity object created in the service layer — not from the database. So `repository.save()` appeared to succeed and returned the same object back, which was then mapped to the DTO and returned as the response. The data only existed in memory for the duration of the request and disappeared immediately after.
+
+**Debugging steps taken:**
+
+- Checked Render logs after POST requests — no logs appearing at all initially
+- Confirmed GET endpoints were working and showing logs correctly
+- Suspected Cloudflare caching POST responses
+- Tested via curl from local terminal directly to the Render URL
+- Got a `500 Internal Server Error` response confirming the request was hitting the server
+- Added `System.out.println` log lines at controller and service level to trace execution
+- Confirmed request was reaching controller and service with `isNew: true`
+- Checked AWS RDS directly via CloudShell — record not present in database
+- Finally identified the root causes
+
+**Root Causes Found:**
+
+1. **Missing `@Enumerated(EnumType.STRING)`** on the `jobAdStatus` field in the `JobAdvert` entity. Without this Hibernate defaults to storing enums as numbers (`smallint`), causing a type mismatch when trying to save the String value `"LIVE"` to the database.
+
+2. **Missing `@Transactional`** on the `createNewJob()` service method. Without this the save operation executed but the transaction was never committed to the database — it silently rolled back at the end of the method.
+
+**Fix Applied:**
+
+```java
+// JobAdvert entity
+@Enumerated(EnumType.STRING)
+private JobAdStatus jobAdStatus;
+
+// JobAdvertService
+@Transactional
+public JobAdDtoAllFields createNewJob(JobAdDTO request) { ... }
+```
+
+Dropped the existing `job_advert` table in AWS RDS (it had incorrect column types from the previous misconfiguration), restarted Render to let Spring Boot recreate the table with correct schema, and verified data was persisting correctly.
+
+### Things Learned & Reflection
+
+#### The Tests Passed But Production Was Still Broken
+
+This is a key lesson — **passing tests do not guarantee correct production behaviour**. The integration test used H2 in-memory database which is more lenient than PostgreSQL. Specifically:
+
+- H2 handled the enum without `@Enumerated` differently to PostgreSQL
+- H2 may have been auto-committing transactions where PostgreSQL required explicit `@Transactional`
+
+**What this reveals is a gap in the test strategy.** The integration tests were running against H2 but production runs against PostgreSQL. These two databases behave differently in subtle ways meaning some bugs only surface in production.
+
+#### What Could Be Done to Prevent This
+
+- **Use TestContainers** for integration tests — spin up a real PostgreSQL container during testing so tests run against the exact same database engine as production. This would have caught both the `@Enumerated` and `@Transactional` issues before deployment.
+- **Add a smoke test** after deployment — a simple automated check that actually POSTs data and then GETs it back to verify the round trip works end to end in production.
+- **Always verify database writes** after implementing any new write endpoint — don't trust the response body alone as proof of persistence.
+
+### Status
+- Tests: passing ✅
+- POST /api/jobAds: live and persisting correctly to AWS RDS ✅
+- Data verified in AWS RDS PostgreSQL ✅
+

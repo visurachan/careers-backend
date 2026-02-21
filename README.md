@@ -17,7 +17,7 @@ This isn't just another CRUD application. This project demonstrates **real-world
 
 ### 🧪 Test-Driven Development (TDD)
 - **Tests Written First:** Every feature starts with failing tests, then minimal code to pass
-- **100% Test Coverage:** All endpoints covered by unit, integration, and end-to-end tests
+- **Comprehensive Test Suite:** Every endpoint covered by unit tests, controller slice tests, and end-to-end integration tests following strict TDD — tests written before implementation
 - **Confidence in Changes:** Comprehensive test suite catches regressions immediately
 
 ### 🔁 Professional CI/CD Pipeline
@@ -53,10 +53,12 @@ Swagger UI (Production):
 
 ## 📋 API Endpoints
 
-| Method | Endpoint | Description | Status |
-|--------|----------|-------------|--------|
-| GET | `/api/jobAds/{id}` | Retrieve specific job advertisement | ✅ Live |
-| GET | `/api/jobAds` | List all job advertisements | ✅ Live |
+| Method | Endpoint           | Description                         | Status |
+|--------|--------------------|-------------------------------------|--------|
+| GET    | `/api/jobAds/{id}` | Retrieve specific job advertisement | ✅ Live |
+| GET    | `/api/jobAds`      | List all job advertisements         | ✅ Live |
+| POST   | `/api/jobAds`       | Post a new job advertisement        |    ✅ Live    |
+
 
 *API expanding incrementally with new features*
 
@@ -73,6 +75,7 @@ Swagger UI (Production):
 - Comprehensive test suite
 - API documentation
 - List all job ads
+- Job posting (/api/jobAds)
 
 ### 🔄 In Progress
 
@@ -81,7 +84,6 @@ Swagger UI (Production):
 ### 📋 Planned (Next 2-4 Weeks)
 - JWT-based authentication
 - User registration (Employer/Candidate roles)
-- Job posting (POST /api/jobAds)
 - Job application submission
 - Application management dashboard
 - CV upload to AWS S3
@@ -146,6 +148,26 @@ Planned features include:
 - Candidate management for recruiters
 - Authentication & role-based access
 - CV upload via AWS S3
+
+---
+
+## ⚠️ Known Gaps & Limitations
+
+### H2 vs PostgreSQL Testing Gap
+
+Integration tests currently run against an **H2 in-memory database** rather than PostgreSQL.
+While this keeps tests fast and CI/CD infrastructure-free, it creates a gap where certain
+bugs only surface in production.
+
+This was encountered firsthand during the POST /api/jobAds implementation — all tests passed
+locally and in CI, but data was silently not persisting to the AWS RDS PostgreSQL database in
+production. The root causes (`@Enumerated` misconfiguration and missing `@Transactional`) were
+masked by H2's more lenient behaviour.
+
+For full details on how this was discovered and resolved, see the **21/02/2026** entry in `JOURNAL.md`.
+
+**Planned fix:** Migrate integration tests to **TestContainers** — spinning up a real PostgreSQL
+container during testing to match the production database engine exactly.
 
 ---
 
