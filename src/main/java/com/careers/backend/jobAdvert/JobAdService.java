@@ -37,6 +37,7 @@ public class JobAdService {
         return repository.findAll();
     }
 
+    @Transactional
     public JobAdDtoAllFields createNewJob(JobAdDTO request) {
         System.out.println("Service createNewJob hit - id: " + request.id());
 
