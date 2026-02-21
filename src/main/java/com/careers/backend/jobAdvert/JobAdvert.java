@@ -18,6 +18,8 @@ public class JobAdvert implements Persistable<String> {
     private String location;
     private LocalDate expiryDate;
     private LocalDateTime postedDateTime;
+
+    @Enumerated(EnumType.STRING)
     private JobAdStatus jobAdStatus;
 
     @Transient

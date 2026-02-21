@@ -123,11 +123,11 @@ public class JobAdController {
                     description = "Internal server error"
             )
     })
-    public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest){
+
+    public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest) {
+        System.out.println("POST /api/jobAds hit"); // add this
         JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
-
-
     }
 }
 
