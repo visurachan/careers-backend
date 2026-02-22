@@ -284,3 +284,26 @@ This is a key lesson — **passing tests do not guarantee correct production beh
 - POST /api/jobAds: live and persisting correctly to AWS RDS ✅
 - Data verified in AWS RDS PostgreSQL ✅
 
+
+# 22/02/2026
+
+### Main Work Done
+
+Implemented pagination for GET /api/jobAds endpoint.
+
+### Work Done
+
+- Updated integration, controller and service tests to support paginated response following outside-in TDD
+- Implemented pagination in service using Spring Data JPA `Pageable`
+- Created custom `PageResponse<T>` record as response wrapper — Spring's `Page<T>` does not serialize cleanly with Jackson out of the box
+- Updated Swagger annotations to document `page` and `size` query parameters
+- All tests passing, deployed to production via GitHub Actions
+
+### Things Learned
+
+Spring's internal `Page<T>` type does not serialize cleanly to JSON with Jackson — a custom response wrapper was created
+
+### Status
+- Tests: all passing ✅
+- GET /api/jobAds: paginated response live in production ✅
+

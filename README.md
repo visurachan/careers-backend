@@ -79,7 +79,7 @@ Swagger UI (Production):
 
 ### 🔄 In Progress
 
-- Pagination support
+
 
 ### 📋 Planned (Next 2-4 Weeks)
 - JWT-based authentication
