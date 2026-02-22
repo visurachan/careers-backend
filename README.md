@@ -74,7 +74,7 @@ Swagger UI (Production):
 - Production deployment
 - Comprehensive test suite
 - API documentation
-- List all job ads
+- List all job ads with pagination
 - Job posting (/api/jobAds)
 
 ### 🔄 In Progress

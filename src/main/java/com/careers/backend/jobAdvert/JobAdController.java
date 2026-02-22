@@ -70,27 +70,27 @@ public class JobAdController {
     @GetMapping
     @Operation(
             summary = "Get all job adverts",
-            description = "Retrieves a list of all job advertisements"
+            description = "Retrieves a paginated list of all job advertisements"
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Successfully retrieved list of job adverts",
+                    description = "Successfully retrieved paginated list of job adverts",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = JobAdDTO.class)
+                            schema = @Schema(implementation = PageResponse.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(mediaType = "application/json")
+                    description = "Internal server error"
             )
     })
-
-
     public PageResponse<JobAdDTO> getAllJobs(
+            @Parameter(description = "Page number, starting from 0", example = "0")
             @RequestParam(defaultValue = "0") int page,
+
+            @Parameter(description = "Number of records per page", example = "10")
             @RequestParam(defaultValue = "10") int size) {
 
         Page<JobAdvert> jobPage = service.getAllJobAds(page, size);
