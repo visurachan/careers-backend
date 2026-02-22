@@ -15,6 +15,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,20 +78,24 @@ class JobAdControllerTest {
 
     @Test
     void shouldReturnAllJobs() throws Exception {
-        JobAdvert jobAd1 = new JobAdvert("job1","Java Developer");
-        JobAdvert jobAd2 =  new JobAdvert("jobAd2","Python Developer");
-        List<JobAdvert> jobList = Arrays.asList(jobAd1,jobAd2);
+        JobAdvert jobAd1 = new JobAdvert("job1", "Java Developer");
+        JobAdvert jobAd2 = new JobAdvert("jobAd2", "Python Developer");
+        Page<JobAdvert> jobPage = new PageImpl<>(
+                Arrays.asList(jobAd1, jobAd2),
+                PageRequest.of(0, 10),
+                2);
 
-        when(service.getAllJobAds()).thenReturn(jobList);
+        when(service.getAllJobAds(0, 10)).thenReturn(jobPage);
 
-        mockMvc.perform(get("/api/jobAds"))
+        mockMvc.perform(get("/api/jobAds?page=0&size=10"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].title").value("Java Developer"))
-                .andExpect(jsonPath("$[1].title").value("Python Developer"));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].title").value("Java Developer"))
+                .andExpect(jsonPath("$.content[1].title").value("Python Developer"))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.pageSize").value(10));
     }
-
     @Test
     void shouldCreateNewJob_whenDataProvided() throws Exception {
         JobAdDtoAllFields newJob = new JobAdDtoAllFields("xx1","Civil Engineer",null, null,null,null,JobAdStatus.LIVE);

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -86,9 +87,16 @@ public class JobAdController {
                     content = @Content(mediaType = "application/json")
             )
     })
-    public List<JobAdDTO> getAllJobs() {
-        List<JobAdvert> jobs = service.getAllJobAds();
-        return jobs.stream()
+
+
+    public PageResponse<JobAdDTO> getAllJobs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<JobAdvert> jobPage = service.getAllJobAds(page, size);
+
+        List<JobAdDTO> content = jobPage.getContent()
+                .stream()
                 .map(job -> new JobAdDTO(
                         job.getId(),
                         job.getTitle(),
@@ -97,6 +105,14 @@ public class JobAdController {
                         job.getExpiryDate()
                 ))
                 .collect(Collectors.toList());
+
+        return new PageResponse<>(
+                content,
+                jobPage.getTotalPages(),
+                jobPage.getTotalElements(),
+                jobPage.getNumber(),
+                jobPage.getSize()
+        );
     }
 
     @PostMapping
@@ -125,7 +141,7 @@ public class JobAdController {
     })
 
     public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest) {
-        System.out.println("POST /api/jobAds hit"); // add this
+        System.out.println("POST /api/jobAds hit");
         JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
     }

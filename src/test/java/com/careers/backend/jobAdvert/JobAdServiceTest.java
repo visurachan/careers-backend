@@ -7,6 +7,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,20 +54,19 @@ class JobAdServiceTest {
     }
 
     @Test
-    void shouldReturnAllJobAds(){
-        JobAdvert jobAd1 = new JobAdvert("job1","Java Developer");
-        JobAdvert jobAd2 = new JobAdvert("job2","Python Developer");
-        List<JobAdvert> jobList = Arrays.asList(jobAd1,jobAd2);
+    void shouldReturnAllJobAds() {
+        JobAdvert jobAd1 = new JobAdvert("job1", "Java Developer");
+        JobAdvert jobAd2 = new JobAdvert("job2", "Python Developer");
+        Page<JobAdvert> jobPage = new PageImpl<>(Arrays.asList(jobAd1, jobAd2));
 
-        when(repository.findAll()).thenReturn(jobList);
+        when(repository.findAll(ArgumentMatchers.<Pageable>any())).thenReturn(jobPage);
 
-        List<JobAdvert> result = service.getAllJobAds();
+        Page<JobAdvert> result = service.getAllJobAds(0, 10);
 
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getTitle()).isEqualTo("Java Developer");
-        assertThat(result.get(1).getTitle()).isEqualTo("Python Developer");
-
-
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("Java Developer");
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo("Python Developer");
+        assertThat(result.getTotalElements()).isEqualTo(2);
     }
 
     @Test

@@ -1,5 +1,8 @@
 package com.careers.backend.jobAdvert;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,8 +36,9 @@ public class JobAdService {
         return jobAd;
     }
 
-    public List<JobAdvert> getAllJobAds() {
-        return repository.findAll();
+    public Page<JobAdvert> getAllJobAds(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repository.findAll(pageable);
     }
 
     @Transactional

@@ -53,29 +53,42 @@ class BackendApplicationTests {
 
     @Test
     void shouldReturnAllJobAdverts() {
-
         JobAdvert job2 = new JobAdvert("100", "Python Developer");
         repository.save(job2);
 
-
         ResponseEntity<String> response = restTemplate
                 .withBasicAuth("test", "test")
-                .getForEntity("/api/jobAds", String.class);
-
+                .getForEntity("/api/jobAds?page=0&size=10", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         DocumentContext documentContext = JsonPath.parse(response.getBody());
-        int jobCount = documentContext.read("$.length()");
-        assertThat(jobCount).isEqualTo(2);
 
-        // Verify first job
-        String id1 = documentContext.read("$[0].id");
+        int totalElements = documentContext.read("$.totalElements");
+        assertThat(totalElements).isEqualTo(2);
+
+        String id1 = documentContext.read("$.content[0].id");
         assertThat(id1).isEqualTo("99");
 
-        // Verify second job
-        String id2 = documentContext.read("$[1].id");
+        String id2 = documentContext.read("$.content[1].id");
         assertThat(id2).isEqualTo("100");
+    }
+
+    @Test
+    void shouldReturnCorrectPageSize() {
+        ResponseEntity<String> response = restTemplate
+                .withBasicAuth("test", "test")
+                .getForEntity("/api/jobAds?page=0&size=1", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        DocumentContext documentContext = JsonPath.parse(response.getBody());
+
+        int pageSize = documentContext.read("$.pageSize");
+        int contentLength = documentContext.read("$.content.length()");
+
+        assertThat(pageSize).isEqualTo(1);
+        assertThat(contentLength).isEqualTo(1);
     }
 
     @Test
