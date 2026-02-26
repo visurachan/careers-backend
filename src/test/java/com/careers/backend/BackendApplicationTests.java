@@ -124,4 +124,34 @@ class BackendApplicationTests {
         assertThat(id).isEqualTo("200");
         assertThat(title).isEqualTo("Civil Engineer");
     }
+
+    @Test
+    void shouldRegisterNewUser(){
+        String userJson = """
+        {
+            "name": "John Smith",
+            "email": "john@test.com",
+            "password": "password123",
+            "role": "CANDIDATE"
+        }
+        """;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(userJson, headers);
+
+        ResponseEntity<String> response = restTemplate
+
+                .postForEntity("/api/auth/registerNewUser", request, String.class);
+
+        System.out.println(response.getBody());
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        DocumentContext documentContext = JsonPath.parse(response.getBody());
+        String email = documentContext.read("$.email");
+        String role = documentContext.read("$.role");
+
+        assertThat(email).isEqualTo("john@test.com");
+        assertThat(role).isEqualTo("CANDIDATE");
+    }
 }
