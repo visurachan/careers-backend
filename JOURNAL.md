@@ -307,3 +307,54 @@ Spring's internal `Page<T>` type does not serialize cleanly to JSON with Jackson
 - Tests: all passing ✅
 - GET /api/jobAds: paginated response live in production ✅
 
+
+# 27/02/2026
+
+### Main Work Done
+
+Completed user registration endpoint with exception handling, duplicate email validation and Swagger documentation.
+
+### Work Done
+
+#### User Registration — POST /auth/registerNewUser
+
+Implemented using outside-in TDD approach:
+
+1. Integration test written first as failing acceptance criteria
+2. Controller test written using `@WebMvcTest` with `@MockBean`
+3. Service test written using `@ExtendWith(MockitoExtension.class)` with `@Mock` and `@InjectMocks`
+4. Repository test written for custom `findByEmail` query
+5. Each layer implemented to pass its test
+6. Integration test green confirmed full stack wired correctly
+
+Password is never stored in plain text — `BCryptPasswordEncoder` hashes the password in the service before saving to the database. The service test verifies this with `verify(passwordEncoder).encode(...)` confirming hashing always happens.
+
+#### Exception Handling & Validation
+
+- Added `ErrorResponseDto` record for consistent error response structure across all endpoints
+- Added `GlobalExceptionHandler` with handlers for 400, 401, 403, 404, 409 and 500
+- Added `UserAlreadyExistsException` and `UnauthorizedException` custom exceptions
+- Added duplicate email check in `AuthService` using `existsByEmail`
+- Added `existsByEmail` method to `UserRepository`
+
+#### Security Config Update
+
+- Added `PasswordEncoder` bean (`BCryptPasswordEncoder`) to `SecurityConfig`
+- Added `InMemoryUserDetailsManager` with `test/test` user to maintain existing job ad integration tests while real user registration is being built
+- Permitted `/auth/registerNewUser` endpoint without authentication
+
+### Things Learned
+
+**`@Mock` vs `@MockBean` — when to use each:**
+
+This became clear while implementing the auth controller test. `@MockBean` is the correct choice for controller tests using `@WebMvcTest` because Spring loads a real web context and needs to wire the mock into the controller as a Spring bean. `@Mock` with `@InjectMocks` is for service and unit tests where no Spring context is involved — pure Mockito, faster and lighter. Using `@Mock` in a `@WebMvcTest` would fail because Spring wouldn't know about the mock. The rule is simple: Spring context present → `@MockBean`, no Spring context → `@Mock`.
+
+### Status
+- Tests: all passing ✅
+- POST /auth/registerNewUser: live in production ✅
+- Global exception handling: live ✅
+
+### Immediate Next Steps
+- Implement JWT login (POST /auth/login)
+- Replace Basic Auth with JWT token based authentication
+- Remove `test/test` InMemoryUserDetailsManager once JWT is implemented

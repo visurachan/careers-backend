@@ -53,11 +53,12 @@ Swagger UI (Production):
 
 ## 📋 API Endpoints
 
-| Method | Endpoint           | Description                         | Status |
-|--------|--------------------|-------------------------------------|--------|
-| GET    | `/api/jobAds/{id}` | Retrieve specific job advertisement | ✅ Live |
-| GET    | `/api/jobAds`      | List all job advertisements         | ✅ Live |
-| POST   | `/api/jobAds`       | Post a new job advertisement        |    ✅ Live    |
+| Method | Endpoint                   | Description                         | Status |
+|--------|----------------------------|-------------------------------------|--------|
+| GET    | `/api/jobAds/{id}`         | Retrieve specific job advertisement | ✅ Live |
+| GET    | `/api/jobAds`              | List all job advertisements         | ✅ Live |
+| POST   | `/api/jobAds`              | Post a new job advertisement        |    ✅ Live    |
+| POST   | `/api/auth/registerNewUser | Register a new User                 |       ✅ Live           |
 
 
 *API expanding incrementally with new features*
@@ -76,13 +77,15 @@ Swagger UI (Production):
 - API documentation
 - List all job ads with pagination
 - Job posting (/api/jobAds)
+- User registration (COMPANY/CANDIDATE/ADMIN roles)
 
 ### 🔄 In Progress
 
+- JWT-based authentication
 
 
 ### 📋 Planned (Next 2-4 Weeks)
-- JWT-based authentication
+
 - User registration (Employer/Candidate roles)
 - Job application submission
 - Application management dashboard
