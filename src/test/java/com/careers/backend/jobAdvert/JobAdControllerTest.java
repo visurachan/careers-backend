@@ -1,9 +1,8 @@
 package com.careers.backend.jobAdvert;
 
-import com.careers.backend.common.GlobalExceptionHandler;
+import com.careers.backend.common.exception.GlobalExceptionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -23,10 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 
-import java.lang.reflect.Array;
-import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
