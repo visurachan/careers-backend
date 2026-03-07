@@ -47,18 +47,18 @@ Swagger UI (Production):
 - If inactive, please wait ~30–60 seconds for the application to initialize.
 - Basic authentication is enabled.
 
-**Credentials:**
-- Username: `test`
-- Password: `test`
+**Authentication:**  
+JWT authentication is required for protected endpoints. Register via `/api/auth/registerNewUser`, login via `/api/auth/login` to get a token, then use the Authorize button (🔓) in Swagger UI.
 
 ## 📋 API Endpoints
 
-| Method | Endpoint                   | Description                         | Status |
-|--------|----------------------------|-------------------------------------|--------|
-| GET    | `/api/jobAds/{id}`         | Retrieve specific job advertisement | ✅ Live |
-| GET    | `/api/jobAds`              | List all job advertisements         | ✅ Live |
-| POST   | `/api/jobAds`              | Post a new job advertisement        |    ✅ Live    |
-| POST   | `/api/auth/registerNewUser | Register a new User                 |       ✅ Live           |
+| Method | Endpoint                    | Description                         | Status |
+|--------|-----------------------------|-------------------------------------|--------|
+| GET    | `/api/jobAds/{id}`          | Retrieve specific job advertisement | ✅ Live |
+| GET    | `/api/jobAds`               | List all job advertisements         | ✅ Live |
+| POST   | `/api/jobAds`               | Post a new job advertisement        |    ✅ Live    |
+| POST   | `/api/auth/registerNewUser` | Register a new User                 |       ✅ Live           |
+| POST   | `/api/auth/login`            | Login and receive JWT Token         |        ✅ Live                |
 
 
 *API expanding incrementally with new features*
@@ -78,15 +78,17 @@ Swagger UI (Production):
 - List all job ads with pagination
 - Job posting (/api/jobAds)
 - User registration (COMPANY/CANDIDATE/ADMIN roles)
+- JWT-based authentication
+- User login
 
 ### 🔄 In Progress
 
-- JWT-based authentication
+- Associate job ads with posting user
+- Role-based access control (COMPANY/CANDIDATE/ADMIN)
 
 
 ### 📋 Planned (Next 2-4 Weeks)
 
-- User registration (Employer/Candidate roles)
 - Job application submission
 - Application management dashboard
 - CV upload to AWS S3

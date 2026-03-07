@@ -358,3 +358,53 @@ This became clear while implementing the auth controller test. `@MockBean` is th
 - Implement JWT login (POST /auth/login)
 - Replace Basic Auth with JWT token based authentication
 - Remove `test/test` InMemoryUserDetailsManager once JWT is implemented
+
+
+## 07/03/2026
+
+### Main Work Done
+
+Implemented JWT login endpoint, replaced Basic Auth with Bearer token authentication, updated all integration tests to use JWT, and deployed to Render with full end-to-end testing.
+
+### Work Done
+
+#### JWT Login — POST /api/auth/login
+
+Implemented using outside-in TDD approach — integration test first, then controller, service, and repository layers. Login authenticates via `AuthenticationManager` delegating to `DaoAuthenticationProvider` → `UserDetailsService` → BCrypt comparison. On success `JwtService` generates a signed HMAC-SHA256 token returned in the response body.
+
+#### Circular Dependency Resolution
+
+Original design caused a three-way cycle: `AuthService` → `AuthenticationManager` → `UserDetailsService` → `AuthService`. Fixed by moving `authenticate()` out of `AuthService` into `AuthController`. `AuthService` now only handles user lookup and token generation.
+
+#### JWT Security Filter Chain
+
+Replaced Basic Auth with Bearer token authentication. Public endpoints are all GET job ad routes and both auth endpoints. All other endpoints require a valid JWT. `BadCredentialsException` handled explicitly in `GlobalExceptionHandler` returning 401 with a generic message to prevent user enumeration.
+
+#### Integration Test Migration
+
+All job ad integration tests migrated from Basic Auth to Bearer token. Added a `getToken()` helper and `userRepository.deleteAll()` in `@BeforeEach` to prevent 409 conflicts between tests.
+
+#### Swagger UI Authentication
+
+Added `SecurityScheme` to `OpenApiConfig` so the Authorize button appears in Swagger UI. Added documentation to login and POST job ad endpoints guiding users through the register → login → authorize flow.
+
+### Things Learned
+
+**Circular dependency in Spring Security:** When a service implements `UserDetailsService` and also needs `AuthenticationManager`, move the `authenticate()` call to the controller to break the cycle.
+
+**Base64-encoded secrets are mandatory:** `Decoders.BASE64.decode()` crashes at startup with plain text secrets containing hyphens or special characters. Both test and production properties must use properly Base64-encoded values.
+
+**`@WebMvcTest` masks security config bugs:** Controller tests with `addFilters=false` never load `SecurityConfig` so they pass even if the config is broken. Only `@SpringBootTest` catches these issues — another reason integration tests are the real safety net.
+
+**`BadCredentialsException` covers both wrong email and wrong password:** Spring Security throws the same exception for both cases intentionally to prevent user enumeration.
+
+### Status
+- Tests: all passing ✅
+- POST /api/auth/login: live in production ✅
+- Bearer token authentication: live ✅
+- Swagger UI authentication: working ✅
+
+### Immediate Next Steps
+- Associate job ads with the user who posted them
+- Role-based access control — only `COMPANY` role can post job ads
+- Update README roadmap
