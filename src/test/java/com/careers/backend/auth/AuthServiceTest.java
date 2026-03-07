@@ -5,12 +5,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -20,6 +21,10 @@ class AuthServiceTest {
 
     @Mock
     PasswordEncoder passwordEncoder;
+
+
+    @Mock
+    JwtService jwtService;
 
     @InjectMocks
     AuthService service;
@@ -40,8 +45,20 @@ class AuthServiceTest {
         verify(passwordEncoder).encode("password123");
         verify(repository).save(any());
 
+    }
 
+    @Test
+    void shouldLoginAndReturnToken(){
+        LoginRequestDto request = new LoginRequestDto(
+                "john@test.com","password123"
+        );
 
+        when(jwtService.generateToken("john@test.com")).thenReturn("mocked.jwt.token");
+
+        LoginResponseDto result = service.login(request);
+        assertThat(result.token()).isEqualTo("mocked.jwt.token");
+
+        verify(jwtService).generateToken("john@test.com");
 
     }
 

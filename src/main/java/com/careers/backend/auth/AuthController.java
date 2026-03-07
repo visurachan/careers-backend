@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService service;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthController(AuthService service) {
+
+    public AuthController(AuthService service, AuthenticationManager authenticationManager) {
         this.service = service;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/registerNewUser")
@@ -64,5 +69,18 @@ public class AuthController {
         RegisterResponseDto response = service.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(
+            @RequestBody LoginRequestDto request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+        LoginResponseDto response = service.login(request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

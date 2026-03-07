@@ -2,47 +2,94 @@ package com.careers.backend.config;
 
 
 
+import com.careers.backend.auth.AuthService;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.crypto.SecretKey;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${jwt.secret}")
+    private String secretKey;
+
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails testUser = org.springframework.security.core.userdetails.User
-                .withUsername("test")
-                .password(passwordEncoder().encode("test"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(testUser);
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(provider);
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        return NimbusJwtDecoder.withSecretKey(key).build();
+    }
+
+    @Bean
+    public JwtEncoder jwtEncoder() {
+        SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+        JWKSource<SecurityContext> jwkSource = new ImmutableSecret<>(key);
+        return new NimbusJwtEncoder(jwkSource);
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/registerNewUser").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults());
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(
+                        jwt -> jwt.decoder(jwtDecoder())
+                ));
 
         return http.build();
+    }
+
+    @Bean
+    public UserDetailsService userDetailsService(AuthService authService) {
+        return authService;
     }
 }

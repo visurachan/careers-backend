@@ -1,5 +1,6 @@
 package com.careers.backend;
 
+import com.careers.backend.auth.UserRepository;
 import com.careers.backend.jobAdvert.JobAdvert;
 import com.careers.backend.jobAdvert.JobAdRepository;
 import com.jayway.jsonpath.DocumentContext;
@@ -22,78 +23,99 @@ class BackendApplicationTests {
     @Autowired
     private JobAdRepository repository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private String token;
+
     @BeforeEach
     void setUp() {
         repository.deleteAll();
+        userRepository.deleteAll();
+
         JobAdvert testJob = new JobAdvert("99", "Test Developer Position");
         repository.save(testJob);
+
+        token = getToken();
+    }
+
+    private String getToken() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String registerJson = """
+            {"name":"Test User","email":"test@test.com","password":"password123","role":"CANDIDATE"}
+            """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(registerJson, headers), String.class);
+
+        String loginJson = """
+            {"email":"test@test.com","password":"password123"}
+            """;
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson, headers), String.class);
+
+        return JsonPath.parse(response.getBody()).read("$.token");
+    }
+
+    private HttpEntity<Void> authRequest() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        return new HttpEntity<>(headers);
+    }
+
+    private HttpEntity<String> authRequest(String body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+        return new HttpEntity<>(body, headers);
     }
 
     @Test
     void shouldReturnAJobAdvertWhenDataExists() {
-        ResponseEntity<String> response = restTemplate
-                .withBasicAuth("test", "test")
-                .getForEntity("/api/jobAds/99", String.class);  // Changed URL!
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "/api/jobAds/99",String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        DocumentContext documentContext = JsonPath.parse(response.getBody());
-        String id = documentContext.read("$.id");
+        String id = JsonPath.parse(response.getBody()).read("$.id");
         assertThat(id).isEqualTo("99");
     }
 
     @Test
     void shouldNotReturnAJobAdvertWithAnUnknownId() {
-        ResponseEntity<String> response = restTemplate
-                .withBasicAuth("test", "test")
-                .getForEntity("/api/jobAds/1000", String.class);  // Changed URL!
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "/api/jobAds/1000", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void shouldReturnAllJobAdverts() {
-        JobAdvert job2 = new JobAdvert("100", "Python Developer");
-        repository.save(job2);
+        repository.save(new JobAdvert("100", "Python Developer"));
 
-        ResponseEntity<String> response = restTemplate
-                .withBasicAuth("test", "test")
-                .getForEntity("/api/jobAds?page=0&size=10", String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "/api/jobAds?page=0&size=10",String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        DocumentContext documentContext = JsonPath.parse(response.getBody());
-
-        int totalElements = documentContext.read("$.totalElements");
-        assertThat(totalElements).isEqualTo(2);
-
-        String id1 = documentContext.read("$.content[0].id");
-        assertThat(id1).isEqualTo("99");
-
-        String id2 = documentContext.read("$.content[1].id");
-        assertThat(id2).isEqualTo("100");
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((int) doc.read("$.totalElements")).isEqualTo(2);
+        assertThat((String) doc.read("$.content[0].id")).isEqualTo("99");
+        assertThat((String) doc.read("$.content[1].id")).isEqualTo("100");
     }
 
     @Test
     void shouldReturnCorrectPageSize() {
-        ResponseEntity<String> response = restTemplate
-                .withBasicAuth("test", "test")
-                .getForEntity("/api/jobAds?page=0&size=1", String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "/api/jobAds?page=0&size=1",String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        DocumentContext documentContext = JsonPath.parse(response.getBody());
-
-        int pageSize = documentContext.read("$.pageSize");
-        int contentLength = documentContext.read("$.content.length()");
-
-        assertThat(pageSize).isEqualTo(1);
-        assertThat(contentLength).isEqualTo(1);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((int) doc.read("$.pageSize")).isEqualTo(1);
+        assertThat((int) doc.read("$.content.length()")).isEqualTo(1);
     }
 
     @Test
     void shouldCreateNewJobAdvert() {
-        // Arrange
         String jobJson = """
         {
             "id": "200",
@@ -104,29 +126,17 @@ class BackendApplicationTests {
         }
         """;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(jobJson, headers);
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds", HttpMethod.POST, authRequest(jobJson), String.class);
 
-        // Act
-        ResponseEntity<String> response = restTemplate
-                .withBasicAuth("test", "test")
-                .postForEntity("/api/jobAds", request, String.class);
-
-        System.out.println(response.getBody());
-        // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
-        DocumentContext documentContext = JsonPath.parse(response.getBody());
-        String id = documentContext.read("$.id");
-        String title = documentContext.read("$.title");
-
-        assertThat(id).isEqualTo("200");
-        assertThat(title).isEqualTo("Civil Engineer");
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((String) doc.read("$.id")).isEqualTo("200");
+        assertThat((String) doc.read("$.title")).isEqualTo("Civil Engineer");
     }
 
     @Test
-    void shouldRegisterNewUser(){
+    void shouldRegisterNewUser() {
         String userJson = """
         {
             "name": "John Smith",
@@ -137,21 +147,31 @@ class BackendApplicationTests {
         """;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(userJson, headers);
 
-        ResponseEntity<String> response = restTemplate
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/auth/registerNewUser", new HttpEntity<>(userJson, headers), String.class);
 
-                .postForEntity("/api/auth/registerNewUser", request, String.class);
-
-        System.out.println(response.getBody());
-        // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((String) doc.read("$.email")).isEqualTo("john@test.com");
+        assertThat((String) doc.read("$.role")).isEqualTo("CANDIDATE");
+    }
 
-        DocumentContext documentContext = JsonPath.parse(response.getBody());
-        String email = documentContext.read("$.email");
-        String role = documentContext.read("$.role");
+    @Test
+    void shouldLoginAndReturnJwtToken() {
+        // user already registered in setUp() via getToken()
+        String loginJson = """
+            {"email":"test@test.com","password":"password123"}
+            """;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        assertThat(email).isEqualTo("john@test.com");
-        assertThat(role).isEqualTo("CANDIDATE");
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson, headers), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        String token = JsonPath.parse(response.getBody()).read("$.token");
+        assertThat(token).isNotNull();
+        assertThat(token).isNotEmpty();
     }
 }

@@ -7,11 +7,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,6 +26,9 @@ class AuthControllerTest {
 
     @MockBean
     AuthService service;
+
+    @MockBean
+    AuthenticationManager authenticationManager;
 
     @Test
     void shouldRegisterNewUser() throws Exception {
@@ -49,5 +54,25 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("john@test.com"))
                 .andExpect(jsonPath("$.role").value("CANDIDATE"));
+    }
+    @Test
+    void shouldLoginAndReturnToken() throws Exception{
+        LoginResponseDto mockResponse = new LoginResponseDto("mocked.jwt.token");
+
+        when(service.login(any(LoginRequestDto.class))).thenReturn(mockResponse);
+
+        String loginJson = """
+        {
+            "email": "john@test.com",
+            "password": "password123"
+        }
+                """;
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginJson))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("mocked.jwt.token"));
     }
 }
