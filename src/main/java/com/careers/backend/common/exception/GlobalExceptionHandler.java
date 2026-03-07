@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,6 +74,15 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
                 "An internal error occurred. Please try again later.", request);
     }
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadCredentials(
+            BadCredentialsException e, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponseDto(401, "UNAUTHORIZED",
+                        "Invalid email or password",
+                        request.getRequestURI(), LocalDateTime.now().toString()));
+    }
+
 
     // ── Helper ──────────────────────────────────────────────────────────────
     private ResponseEntity<ErrorResponseDto> buildError(
