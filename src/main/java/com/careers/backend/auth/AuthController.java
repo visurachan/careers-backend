@@ -71,16 +71,17 @@ public class AuthController {
 
     }
 
+
+
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(
-            @RequestBody LoginRequestDto request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
-        );
-        LoginResponseDto response = service.login(request);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+            return ResponseEntity.ok(service.login(request));
+        } catch (Exception e) {
+            e.printStackTrace(); // will appear in Render logs
+            throw e;
+        }
     }
 }
