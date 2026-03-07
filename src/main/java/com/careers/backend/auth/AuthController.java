@@ -74,14 +74,35 @@ public class AuthController {
 
 
     @PostMapping("/login")
+    @Operation(
+            summary = "Login",
+            description = "Authenticate with email and password. **Note:** You must register first via `/api/auth/registerNewUser` before logging in. " +
+                    "Returns a JWT token to use for authenticated endpoints. " +
+                    "Copy the token from the response and click the **Authorize** button (🔓) at the top of this page to authenticate."
+    )
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Login successful - copy the token and use the Authorize button to authenticate",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = LoginResponseDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized – Invalid email or password"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal Server Error – Unexpected error on the server side"
+            )
+    })
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.email(), request.password()));
-            return ResponseEntity.ok(service.login(request));
-        } catch (Exception e) {
-            e.printStackTrace(); // will appear in Render logs
-            throw e;
-        }
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
+        return ResponseEntity.ok(service.login(request));
     }
+
 }

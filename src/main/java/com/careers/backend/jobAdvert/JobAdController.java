@@ -118,7 +118,10 @@ public class JobAdController {
     @PostMapping
     @Operation(
             summary = "Create a new job advertisement",
-            description = "Creates a new job ad. Status is automatically set to LIVE and posted date/time is set by the server."
+            description = "Creates a new job ad. **Requires authentication.** " +
+                    "First login via `/api/auth/login` to get a JWT token, " +
+                    "then click the **Authorize** button (🔓) at the top of this page and paste the token. " +
+                    "Status is automatically set to LIVE and posted date/time is set by the server."
     )
     @ApiResponses({
             @ApiResponse(
@@ -132,18 +135,18 @@ public class JobAdController {
             ),
             @ApiResponse(
                     responseCode = "401",
-                    description = "Unauthorized - invalid credentials"
+                    description = "Unauthorized – JWT token missing or invalid. Login via /api/auth/login to get a token."
             ),
             @ApiResponse(
                     responseCode = "500",
                     description = "Internal server error"
             )
     })
-
     public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest) {
         System.out.println("POST /api/jobAds hit");
         JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
     }
+
 }
 
