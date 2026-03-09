@@ -42,7 +42,7 @@ public class JobAdService {
     }
 
     @Transactional
-    public JobAdDtoAllFields createNewJob(JobAdDTO request) {
+    public JobAdDtoAllFields createNewJob(JobAdDTO request,String postedBy) {
         System.out.println("Service createNewJob hit - id: " + request.id());
 
         JobAdvert entity = new JobAdvert(
@@ -52,7 +52,8 @@ public class JobAdService {
                 request.location(),
                 request.expiryDate(),
                 LocalDateTime.now(),
-                JobAdStatus.LIVE
+                JobAdStatus.LIVE,
+                postedBy
         );
 
         System.out.println("Entity isNew: " + entity.isNew());
@@ -68,7 +69,8 @@ public class JobAdService {
                 saved.getLocation(),
                 saved.getExpiryDate(),
                 saved.getPostedDateTime(),
-                saved.getJobAdStatus()
+                saved.getJobAdStatus(),
+                saved.getPostedBy()
         );
     }
 

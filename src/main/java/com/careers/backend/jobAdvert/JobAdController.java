@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -57,14 +59,14 @@ public class JobAdController {
                     content = @Content(mediaType = "application/json")
             )
     })
-    public JobAdDTO getJobById(
+    public JobAdDtoAllFields getJobById(
             @Parameter(
                     description = "Unique identifier of the job advert",
                     example = "job1git "
             )
             @PathVariable String id){
         JobAdvert jobAd = service.getJobAdById(id);
-        return new JobAdDTO(jobAd.getId(), jobAd.getTitle(), jobAd.getDescription(), jobAd.getLocation(), jobAd.getExpiryDate());
+        return new JobAdDtoAllFields(jobAd.getId(), jobAd.getTitle(), jobAd.getDescription(), jobAd.getLocation(), jobAd.getExpiryDate(), jobAd.getPostedDateTime(),jobAd.getJobAdStatus(), jobAd.getPostedBy());
     }
 
     @GetMapping
@@ -86,7 +88,7 @@ public class JobAdController {
                     description = "Internal server error"
             )
     })
-    public PageResponse<JobAdDTO> getAllJobs(
+    public PageResponse<JobAdDtoAllFields> getAllJobs(
             @Parameter(description = "Page number, starting from 0", example = "0")
             @RequestParam(defaultValue = "0") int page,
 
@@ -95,14 +97,17 @@ public class JobAdController {
 
         Page<JobAdvert> jobPage = service.getAllJobAds(page, size);
 
-        List<JobAdDTO> content = jobPage.getContent()
+        List<JobAdDtoAllFields> content = jobPage.getContent()
                 .stream()
-                .map(job -> new JobAdDTO(
+                .map(job -> new JobAdDtoAllFields(
                         job.getId(),
                         job.getTitle(),
                         job.getDescription(),
                         job.getLocation(),
-                        job.getExpiryDate()
+                        job.getExpiryDate(),
+                        job.getPostedDateTime(),
+                        job.getJobAdStatus(),
+                        job.getPostedBy()
                 ))
                 .collect(Collectors.toList());
 
@@ -142,9 +147,12 @@ public class JobAdController {
                     description = "Internal server error"
             )
     })
-    public ResponseEntity<JobAdDtoAllFields> createNewJobAd(@RequestBody JobAdDTO newJobAdRequest) {
+    public ResponseEntity<JobAdDtoAllFields> createNewJobAd(
+            @RequestBody JobAdDTO newJobAdRequest,
+            @AuthenticationPrincipal Jwt jwt) {
         System.out.println("POST /api/jobAds hit");
-        JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest);
+        String email = jwt.getSubject();
+        JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
     }
 

@@ -22,6 +22,9 @@ public class JobAdvert implements Persistable<String> {
     @Enumerated(EnumType.STRING)
     private JobAdStatus jobAdStatus;
 
+    private String postedBy;
+
+
     @Transient
     private boolean isNew = true;
 
@@ -33,7 +36,7 @@ public class JobAdvert implements Persistable<String> {
         this.title = title;
     }
 
-    public JobAdvert(String id, String title, String description, String location, LocalDate expiryDate, LocalDateTime postedDateTime, JobAdStatus jobAdStatus) {
+    public JobAdvert(String id, String title, String description, String location, LocalDate expiryDate, LocalDateTime postedDateTime, JobAdStatus jobAdStatus, String postedBy) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -42,6 +45,7 @@ public class JobAdvert implements Persistable<String> {
         this.postedDateTime = postedDateTime;
         this.jobAdStatus = jobAdStatus;
         this.isNew = true;
+        this.postedBy = postedBy;
     }
     @Override
     public String getId() {
@@ -105,5 +109,13 @@ public class JobAdvert implements Persistable<String> {
 
     public void setJobAdStatus(JobAdStatus jobAdStatus) {
         this.jobAdStatus = jobAdStatus;
+    }
+
+    public String getPostedBy() {
+        return postedBy;
+    }
+
+    public void setPostedBy(String postedBy) {
+        this.postedBy = postedBy;
     }
 }

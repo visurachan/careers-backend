@@ -133,6 +133,7 @@ class BackendApplicationTests {
         DocumentContext doc = JsonPath.parse(response.getBody());
         assertThat((String) doc.read("$.id")).isEqualTo("200");
         assertThat((String) doc.read("$.title")).isEqualTo("Civil Engineer");
+        assertThat((String) doc.read("$.postedBy")).isEqualTo("test@test.com");
     }
 
     @Test

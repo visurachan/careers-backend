@@ -70,7 +70,7 @@ class JobAdServiceTest {
     }
 
     @Test
-    void shouldCreateNewJobAd_withLiveStatusPostedDateTime(){
+    void shouldCreateNewJobAd_withLiveStatusPostedDateTime() {
         // Arrange
         JobAdDTO request = new JobAdDTO(
                 "101",
@@ -87,22 +87,23 @@ class JobAdServiceTest {
                 "London",
                 LocalDate.of(2026, 12, 31),
                 LocalDateTime.now(),
-                JobAdStatus.LIVE
+                JobAdStatus.LIVE,
+                "test@test.com"
         );
 
         when(repository.<JobAdvert>save(any())).thenReturn(savedEntity);
 
         // Act
-        JobAdDtoAllFields result = service.createNewJob(request);
+        JobAdDtoAllFields result = service.createNewJob(request, "test@test.com");
 
         // Assert
         assertThat(result.id()).isEqualTo("101");
         assertThat(result.title()).isEqualTo("Senior Java Developer");
         assertThat(result.jobAdStatus()).isEqualTo(JobAdStatus.LIVE);
         assertThat(result.postedDateTime()).isNotNull();
+        assertThat(result.postedBy()).isEqualTo("test@test.com");
         verify(repository).save(ArgumentMatchers.<JobAdvert>any());
     }
-
 
 }
 

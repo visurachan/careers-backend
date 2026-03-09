@@ -52,7 +52,14 @@ public record JobAdDtoAllFields(
                 example = "LIVE",
                 implementation = JobAdStatus.class
         )
-        JobAdStatus jobAdStatus
+        JobAdStatus jobAdStatus,
+
+        @Schema(
+                description = "Employer who posted the job",
+                example ="abc@company.com",
+                type = "String"
+        )
+        String postedBy
 
 
 
