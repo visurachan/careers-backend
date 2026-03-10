@@ -408,3 +408,33 @@ Added `SecurityScheme` to `OpenApiConfig` so the Authorize button appears in Swa
 - Associate job ads with the user who posted them
 - Role-based access control — only `COMPANY` role can post job ads
 - Update README roadmap
+
+
+## 09/03/2026
+
+### Main Work Done
+
+Associated job ads with the authenticated user who posted them by adding a `postedBy` field, and migrated `JobAdControllerTest` to `@WebMvcTest` with real security context.
+
+### Work Done
+
+#### postedBy Field — JobAdvert
+
+Added `postedBy` as a plain string field to the `JobAdvert` entity and `JobAdDtoAllFields` response DTO. Updated `createNewJob` service method to accept email as a parameter. Updated `JobAdController` to extract the authenticated user's email from the JWT via `@AuthenticationPrincipal` and pass it to the service. Hibernate's `ddl-auto=update` automatically adds the `posted_by` column to the production database on next deploy.
+
+#### Controller Test Migration
+
+Migrated `JobAdControllerTest` from `standaloneSetup` to `@WebMvcTest` with real `SecurityConfig` loaded. Previous `standaloneSetup` approach didn't support `@AuthenticationPrincipal` injection. Added `@TestPropertySource` with the test JWT secret and `@MockBean AuthService` to satisfy `SecurityConfig` dependencies.
+
+### Things Learned
+
+**`standaloneSetup` doesn't support Spring Security features:** `@AuthenticationPrincipal` injection requires a real security context. Once `SecurityConfig` needs to be loaded in controller tests, `standaloneSetup` must be replaced with `@WebMvcTest`.
+
+**`anonymous()` vs `jwt()` in `@WebMvcTest`:** Public endpoints need `.with(anonymous())` and protected endpoints need `.with(jwt())` when testing with a real security filter chain.
+
+### Status
+- Tests: all passing ✅
+- postedBy field: live on next deploy ✅
+
+### Immediate Next Steps
+- Role-based access control — only `COMPANY` role can post job ads
