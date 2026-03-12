@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -125,8 +126,8 @@ class JobAdControllerTest {
         mockMvc.perform(post("/api/jobAds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jobJson)
-                        .with(jwt().jwt(j -> j.subject("test@test.com")
-                        .claim("role", "COMPANY"))))
+                        .with(jwt().jwt(j -> j.subject("test@test.com"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_COMPANY"))))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("xx1"))
@@ -134,7 +135,6 @@ class JobAdControllerTest {
                 .andExpect(jsonPath("$.jobAdStatus").value("LIVE"))
                 .andExpect(jsonPath("$.postedBy").value("test@test.com"));
     }
-
     @Test
     void shouldReturn403_whenCandidateTriesToPostJobAd() throws Exception {
         String jobJson = """
