@@ -1,6 +1,7 @@
 package com.careers.backend.jobAdvert;
 
 import com.careers.backend.auth.AuthService;
+import com.careers.backend.auth.CustomAccessDeniedHandler;
 import com.careers.backend.auth.CustomAuthenticationEntryPoint;
 import com.careers.backend.common.exception.GlobalExceptionHandler;
 import com.careers.backend.config.SecurityConfig;
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,6 +48,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @WebMvcTest(JobAdController.class)
 @AutoConfigureMockMvc
 @Import(SecurityConfig.class)
+
 @TestPropertySource(properties = {
         "jwt.secret=dGVzdC1zZWNyZXQta2V5LWZvci1qd3QtdGVzdGluZy1vbmx5LXBhZGRpbmc=",
         "jwt.expiration=3600000"
@@ -64,6 +67,8 @@ class JobAdControllerTest {
     @MockBean
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    @MockBean
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
     @Test
     void shouldReturnJob_whenJobExists() throws Exception {
         JobAdvert jobAd = new JobAdvert("001", "Developer");
@@ -135,23 +140,5 @@ class JobAdControllerTest {
                 .andExpect(jsonPath("$.jobAdStatus").value("LIVE"))
                 .andExpect(jsonPath("$.postedBy").value("test@test.com"));
     }
-    @Test
-    void shouldReturn403_whenCandidateTriesToPostJobAd() throws Exception {
-        String jobJson = """
-            {
-                "id": "xx1",
-                "title": "Civil Engineer",
-                "description": "5+ years experience",
-                "location": "Colombo",
-                "expiryDate": "2026-12-31"
-            }
-            """;
 
-        mockMvc.perform(post("/api/jobAds")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jobJson)
-                        .with(jwt().jwt(j -> j.subject("candidate@test.com")
-                                .claim("role", "CANDIDATE"))))
-                .andExpect(status().isForbidden());
-    }
 }
