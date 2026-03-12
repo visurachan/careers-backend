@@ -1,6 +1,7 @@
 package com.careers.backend.jobAdvert;
 
 import com.careers.backend.auth.AuthService;
+import com.careers.backend.auth.CustomAuthenticationEntryPoint;
 import com.careers.backend.common.exception.GlobalExceptionHandler;
 import com.careers.backend.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +59,10 @@ class JobAdControllerTest {
 
     @MockBean
     private AuthService authService;
+
+    @MockBean
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
     @Test
     void shouldReturnJob_whenJobExists() throws Exception {
         JobAdvert jobAd = new JobAdvert("001", "Developer");
