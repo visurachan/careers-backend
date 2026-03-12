@@ -3,6 +3,7 @@ package com.careers.backend.config;
 
 
 import com.careers.backend.auth.AuthService;
+import com.careers.backend.auth.CustomAuthenticationEntryPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
@@ -39,6 +40,12 @@ public class SecurityConfig {
 
     @Value("${jwt.secret}")
     private String secretKey;
+
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+
+    public SecurityConfig(CustomAuthenticationEntryPoint authenticationEntryPoint) {
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -81,6 +88,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint))
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(
                         jwt -> jwt.decoder(jwtDecoder())
                 ));

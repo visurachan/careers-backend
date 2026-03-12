@@ -150,7 +150,7 @@ public class JobAdController {
     public ResponseEntity<JobAdDtoAllFields> createNewJobAd(
             @RequestBody JobAdDTO newJobAdRequest,
             @AuthenticationPrincipal Jwt jwt) {
-        System.out.println("POST /api/jobAds hit");
+
         String email = jwt.getSubject();
         JobAdDtoAllFields createdJob = service.createNewJob(newJobAdRequest, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdJob);
