@@ -3,6 +3,7 @@ package com.careers.backend.auth;
 import com.careers.backend.common.exception.UserAlreadyExistsException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -66,8 +67,9 @@ public class AuthService implements UserDetailsService {
 
 
     public LoginResponseDto login(LoginRequestDto loginRequest) {
-
-        String token = jwtService.generateToken(loginRequest.email());
+        User user = repository.findByEmail(loginRequest.email())
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        String token = jwtService.generateToken(loginRequest.email(), user.getRole().name());
         return new LoginResponseDto(token);
     }
 

@@ -125,12 +125,33 @@ class JobAdControllerTest {
         mockMvc.perform(post("/api/jobAds")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jobJson)
-                        .with(jwt().jwt(j -> j.subject("test@test.com"))))
+                        .with(jwt().jwt(j -> j.subject("test@test.com")
+                        .claim("role", "COMPANY"))))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("xx1"))
                 .andExpect(jsonPath("$.title").value("Civil Engineer"))
                 .andExpect(jsonPath("$.jobAdStatus").value("LIVE"))
                 .andExpect(jsonPath("$.postedBy").value("test@test.com"));
+    }
+
+    @Test
+    void shouldReturn403_whenCandidateTriesToPostJobAd() throws Exception {
+        String jobJson = """
+            {
+                "id": "xx1",
+                "title": "Civil Engineer",
+                "description": "5+ years experience",
+                "location": "Colombo",
+                "expiryDate": "2026-12-31"
+            }
+            """;
+
+        mockMvc.perform(post("/api/jobAds")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jobJson)
+                        .with(jwt().jwt(j -> j.subject("candidate@test.com")
+                                .claim("role", "CANDIDATE"))))
+                .andExpect(status().isForbidden());
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -53,13 +55,15 @@ class AuthServiceTest {
                 "john@test.com","password123"
         );
 
-        when(jwtService.generateToken("john@test.com")).thenReturn("mocked.jwt.token");
+        User user = new User(1L, "John", "john@test.com", "hashedPassword", UserRole.CANDIDATE);
+
+        when(repository.findByEmail("john@test.com")).thenReturn(Optional.of(user));
+        when(jwtService.generateToken("john@test.com", "CANDIDATE")).thenReturn("mocked.jwt.token");
 
         LoginResponseDto result = service.login(request);
         assertThat(result.token()).isEqualTo("mocked.jwt.token");
 
-        verify(jwtService).generateToken("john@test.com");
-
+        verify(jwtService).generateToken("john@test.com", "CANDIDATE");
     }
 
 

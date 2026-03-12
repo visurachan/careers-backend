@@ -44,7 +44,7 @@ class BackendApplicationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         String registerJson = """
-            {"name":"Test User","email":"test@test.com","password":"password123","role":"CANDIDATE"}
+            {"name":"Test User","email":"test@test.com","password":"password123","role":"COMPANY"}
             """;
         restTemplate.postForEntity("/api/auth/registerNewUser",
                 new HttpEntity<>(registerJson, headers), String.class);
@@ -174,5 +174,37 @@ class BackendApplicationTests {
         String token = JsonPath.parse(response.getBody()).read("$.token");
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
+    }
+
+    @Test
+    void shouldReturn403_whenCandidateTriesToPostJobAd() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String registerJson = """
+        {"name":"Candidate User","email":"candidate@test.com","password":"password123","role":"CANDIDATE"}
+        """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(registerJson, headers), String.class);
+
+        String loginJson = """
+        {"email":"candidate@test.com","password":"password123"}
+        """;
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson, headers), String.class);
+        String candidateToken = JsonPath.parse(loginResponse.getBody()).read("$.token");
+
+        String jobJson = """
+        {"id":"999","title":"Test Job","description":"Test","location":"Test","expiryDate":"2026-12-31"}
+        """;
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setContentType(MediaType.APPLICATION_JSON);
+        authHeaders.setBearerAuth(candidateToken);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds", HttpMethod.POST,
+                new HttpEntity<>(jobJson, authHeaders), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }
