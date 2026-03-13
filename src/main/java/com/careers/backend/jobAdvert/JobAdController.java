@@ -97,7 +97,7 @@ public class JobAdController {
             @Parameter(description = "Number of records per page", example = "10")
             @RequestParam(defaultValue = "10") int size,
 
-            @Parameter(description = "Filter by company email")
+            @Parameter(description = "Filter by company email (Optional)")
             @RequestParam(required = false) String postedBy) {
 
         Page<JobAdvert> jobPage = service.getAllJobAds(page, size, postedBy);
