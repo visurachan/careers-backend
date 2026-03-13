@@ -81,10 +81,11 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 - JWT-based authentication
 - User login
 - Associate job ads with posting user
+- Role-based access control (COMPANY/CANDIDATE/ADMIN) - Only COMPANY can post jobs
 
 ### 🔄 In Progress
 
-- Role-based access control (COMPANY/CANDIDATE/ADMIN)
+
 
 
 ### 📋 Planned (Next 2-4 Weeks)

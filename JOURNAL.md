@@ -438,3 +438,40 @@ Migrated `JobAdControllerTest` from `standaloneSetup` to `@WebMvcTest` with real
 
 ### Immediate Next Steps
 - Role-based access control — only `COMPANY` role can post job ads
+
+## 12/03/2026
+
+### Main Work Done
+
+Implemented role-based access control restricting job ad posting to COMPANY users only, and added proper JSON error responses for 403 Forbidden cases.
+
+### Work Done
+
+#### Role-Based Access Control — POST /api/jobAds
+
+Added role claim to JWT token on login. `JwtService.generateToken()` now accepts the user's role as a parameter. `AuthService.login()` fetches the user from the database to retrieve their role and passes it to `JwtService`. Added `JwtAuthenticationConverter` to `SecurityConfig` to extract the `role` claim from the JWT and convert it to a `ROLE_` prefixed Spring Security authority. Updated `SecurityConfig` to restrict `POST /api/jobAds` to `ROLE_COMPANY` only.
+
+#### Custom 403 Response
+
+Added `CustomAccessDeniedHandler` in the `auth` package to return a consistent JSON error body when a user with insufficient privileges attempts a protected action. Wired into `SecurityConfig` via `exceptionHandling()` alongside the existing `CustomAuthenticationEntryPoint`.
+
+#### Test Updates
+
+Updated `AuthServiceTest` to stub `generateToken()` with the role parameter. Updated `JobAdControllerTest` to set authorities directly via `.authorities(new SimpleGrantedAuthority("ROLE_COMPANY"))` rather than relying on the JWT converter — the converter does not run in the `@WebMvcTest` context. Role restriction is tested at the integration level where the full security stack is loaded. Added `CustomAccessDeniedHandler` as `@MockBean` in `JobAdControllerTest` to satisfy `SecurityConfig` context loading.
+
+### Things Learned
+
+**Security policy belongs at the integration test level:** Role-based access rules involve the full security filter chain and JWT converter. These don't wire correctly in `@WebMvcTest` when using `.claim()` — use `.authorities()` directly for controller tests, and rely on integration tests for end-to-end security policy verification.
+
+**`@WebMvcTest` mocks break handler behaviour:** `CustomAccessDeniedHandler` and `CustomAuthenticationEntryPoint` must be added as `@MockBean` when importing `SecurityConfig` — but mocking them means their response-writing logic doesn't execute. Security enforcement still works; only the custom response body is bypassed in controller tests.
+
+### Status
+- Tests: all passing ✅
+- COMPANY-only job posting: live on next deploy ✅
+- JSON 403 response: live on next deploy ✅
+
+### Immediate Next Steps
+
+- Consider GET /api/jobAds/{id} returning postedBy in response
+- View job ads posted by a specific company
+- Job application submission endpoint
