@@ -1,6 +1,7 @@
 package com.careers.backend;
 
 import com.careers.backend.auth.UserRepository;
+import com.careers.backend.jobAdvert.JobAdStatus;
 import com.careers.backend.jobAdvert.JobAdvert;
 import com.careers.backend.jobAdvert.JobAdRepository;
 import com.jayway.jsonpath.DocumentContext;
@@ -11,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -206,5 +211,27 @@ class BackendApplicationTests {
                 new HttpEntity<>(jobJson, authHeaders), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+
+
+    @Test
+    void shouldReturnJobAdsByCompany() {
+        repository.deleteAll();
+
+        JobAdvert job1 = new JobAdvert("job-001", "Senior Java Developer", "5+ years experience", "London", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        JobAdvert job2 = new JobAdvert("job-002", "Python Developer", "3+ years experience", "Manchester", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        JobAdvert job3 = new JobAdvert("job-003", "Frontend Developer", "React experience", "London", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "other@test.com");
+
+        repository.saveAll(Arrays.asList(job1, job2, job3));
+
+        ResponseEntity<String> response = restTemplate
+                .getForEntity("/api/jobAds?postedBy=company@test.com&page=0&size=10", String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((int) doc.read("$.totalElements")).isEqualTo(2);
+        assertThat((String) doc.read("$.content[0].postedBy")).isEqualTo("company@test.com");
+        assertThat((String) doc.read("$.content[1].postedBy")).isEqualTo("company@test.com");
     }
 }

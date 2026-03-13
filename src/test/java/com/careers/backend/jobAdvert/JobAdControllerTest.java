@@ -35,6 +35,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.mockito.Mockito.when;
@@ -99,7 +101,7 @@ class JobAdControllerTest {
                 PageRequest.of(0, 10),
                 2);
 
-        when(service.getAllJobAds(0, 10)).thenReturn(jobPage);
+        when(service.getAllJobAds(0, 10,null)).thenReturn(jobPage);
 
         mockMvc.perform(get("/api/jobAds?page=0&size=10")
                         .with(anonymous()))
@@ -139,6 +141,26 @@ class JobAdControllerTest {
                 .andExpect(jsonPath("$.title").value("Civil Engineer"))
                 .andExpect(jsonPath("$.jobAdStatus").value("LIVE"))
                 .andExpect(jsonPath("$.postedBy").value("test@test.com"));
+    }
+
+    @Test
+    void shouldReturnJobAdsByCompany() throws Exception {
+        JobAdvert job1 = new JobAdvert("job-001", "Java Developer", "5+ years", "London", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        JobAdvert job2 = new JobAdvert("job-002", "Python Developer", "3+ years", "Manchester", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        Page<JobAdvert> jobPage = new PageImpl<>(
+                Arrays.asList(job1, job2),
+                PageRequest.of(0, 10),
+                2);
+
+        when(service.getAllJobAds(0, 10, "company@test.com")).thenReturn(jobPage);
+
+        mockMvc.perform(get("/api/jobAds?postedBy=company@test.com&page=0&size=10")
+                        .with(anonymous()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].postedBy").value("company@test.com"))
+                .andExpect(jsonPath("$.content[1].postedBy").value("company@test.com"));
     }
 
 }

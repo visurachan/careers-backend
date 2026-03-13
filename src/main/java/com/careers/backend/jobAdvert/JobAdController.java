@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+
 @RestController
 @RequestMapping("/api/jobAds")
 @Tag(name="Job advert APIs", description = "Operations related to job advertisements")
@@ -93,9 +95,12 @@ public class JobAdController {
             @RequestParam(defaultValue = "0") int page,
 
             @Parameter(description = "Number of records per page", example = "10")
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
 
-        Page<JobAdvert> jobPage = service.getAllJobAds(page, size);
+            @Parameter(description = "Filter by company email")
+            @RequestParam(required = false) String postedBy) {
+
+        Page<JobAdvert> jobPage = service.getAllJobAds(page, size, postedBy);
 
         List<JobAdDtoAllFields> content = jobPage.getContent()
                 .stream()
@@ -119,7 +124,6 @@ public class JobAdController {
                 jobPage.getSize()
         );
     }
-
     @PostMapping
     @Operation(
             summary = "Create a new job advertisement",

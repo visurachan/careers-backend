@@ -471,7 +471,5 @@ Updated `AuthServiceTest` to stub `generateToken()` with the role parameter. Upd
 - JSON 403 response: live on next deploy ✅
 
 ### Immediate Next Steps
-
-- Consider GET /api/jobAds/{id} returning postedBy in response
 - View job ads posted by a specific company
 - Job application submission endpoint

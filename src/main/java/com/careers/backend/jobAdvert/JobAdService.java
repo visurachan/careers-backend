@@ -36,8 +36,11 @@ public class JobAdService {
         return jobAd;
     }
 
-    public Page<JobAdvert> getAllJobAds(int page, int size) {
+    public Page<JobAdvert> getAllJobAds(int page, int size, String postedBy) {
         Pageable pageable = PageRequest.of(page, size);
+        if (postedBy != null && !postedBy.isEmpty()) {
+            return repository.findByPostedBy(postedBy, pageable);
+        }
         return repository.findAll(pageable);
     }
 

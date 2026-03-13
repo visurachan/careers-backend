@@ -14,17 +14,14 @@ import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
-
-import static org.mockito.Mockito.verify;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.hamcrest.Matchers.any;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 class JobAdServiceTest {
@@ -61,7 +58,7 @@ class JobAdServiceTest {
 
         when(repository.findAll(ArgumentMatchers.<Pageable>any())).thenReturn(jobPage);
 
-        Page<JobAdvert> result = service.getAllJobAds(0, 10);
+        Page<JobAdvert> result = service.getAllJobAds(0, 10,null);
 
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Java Developer");
@@ -103,6 +100,21 @@ class JobAdServiceTest {
         assertThat(result.postedDateTime()).isNotNull();
         assertThat(result.postedBy()).isEqualTo("test@test.com");
         verify(repository).save(ArgumentMatchers.<JobAdvert>any());
+    }
+
+    @Test
+    void shouldReturnJobAdsByCompany() {
+        JobAdvert job1 = new JobAdvert("job-001", "Java Developer", "5+ years", "London", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        JobAdvert job2 = new JobAdvert("job-002", "Python Developer", "3+ years", "Manchester", LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        Page<JobAdvert> jobPage = new PageImpl<>(Arrays.asList(job1, job2));
+
+        when(repository.findByPostedBy(eq("company@test.com"), any(Pageable.class))).thenReturn(jobPage);
+
+        Page<JobAdvert> result = service.getAllJobAds(0, 10, "company@test.com");
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getPostedBy()).isEqualTo("company@test.com");
+        assertThat(result.getContent().get(1).getPostedBy()).isEqualTo("company@test.com");
     }
 
 }
