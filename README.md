@@ -75,7 +75,7 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 - Production deployment
 - Comprehensive test suite
 - API documentation
-- List all job ads with pagination
+- List all job ads with pagination (optional filtering by postedBy query parameter)
 - Job posting (/api/jobAds)
 - User registration (COMPANY/CANDIDATE/ADMIN roles)
 - JWT-based authentication

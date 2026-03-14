@@ -234,4 +234,54 @@ class BackendApplicationTests {
         assertThat((String) doc.read("$.content[0].postedBy")).isEqualTo("company@test.com");
         assertThat((String) doc.read("$.content[1].postedBy")).isEqualTo("company@test.com");
     }
+
+    @Test
+    void shouldSubmitJobApplication(){
+        repository.deleteAll();
+        JobAdvert jobAd = new JobAdvert("job1","Carpenter","Kitchen Speciality","Sydney",LocalDate.of(2026,06,30),LocalDateTime.now(),JobAdStatus.LIVE,"company@test.com");
+        repository.save(jobAd);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String registerJson = """
+            {   
+            "name": "John Candidate",
+            "email": "j.candidate@test.com",
+            "password": "password456",
+            "role": "CANDIDATE"
+            }
+                """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(registerJson, headers), String.class);
+
+        String loginJson = """
+                {"email":"j.candidate@test.com","password":"password456"}
+                """;
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson,headers), String.class);
+
+        String candidateToken = JsonPath.parse(loginResponse.getBody()).read("$.token");
+
+        String applyJson = """
+                {"coverNote":"I am very interested in this role."}
+                """;
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setContentType(MediaType.APPLICATION_JSON);
+        authHeaders.setBearerAuth(candidateToken);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds/job1/apply", HttpMethod.POST,
+                new HttpEntity<>(applyJson,authHeaders), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((String) doc.read("$.jobAdId")).isEqualTo("job1");
+        assertThat((String) doc.read("$.candidateEmail")).isEqualTo("j.candidate@test.com");
+        assertThat((String) doc.read("$.candidateName")).isEqualTo("John Candidate");
+        assertThat((String) doc.read("$.coverNote")).isEqualTo("I am very interested in this role.");
+        assertThat((String) doc.read("$.appliedAt")).isNotNull();
+
+    }
 }
