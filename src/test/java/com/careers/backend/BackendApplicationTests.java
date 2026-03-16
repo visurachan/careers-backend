@@ -301,4 +301,45 @@ class BackendApplicationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+
+    @Test
+    void shouldReturn409_whenCandidateAppliesForSameJobTwice() {
+        JobAdvert jobAd = new JobAdvert("job-001", "Java Developer", "5+ years", "London",
+                LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        repository.save(jobAd);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String registerJson = """
+            {"name":"John Candidate","email":"j.candidate@test.com","password":"password456","role":"CANDIDATE"}
+            """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(registerJson, headers), String.class);
+
+        String loginJson = """
+            {"email":"j.candidate@test.com","password":"password456"}
+            """;
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson, headers), String.class);
+        String candidateToken = JsonPath.parse(loginResponse.getBody()).read("$.token");
+
+        String applyJson = """
+            {"coverNote":"I am very interested in this role."}
+            """;
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setContentType(MediaType.APPLICATION_JSON);
+        authHeaders.setBearerAuth(candidateToken);
+
+        // first application
+        restTemplate.exchange("/api/jobAds/job-001/apply", HttpMethod.POST,
+                new HttpEntity<>(applyJson, authHeaders), String.class);
+
+        // second application — should fail
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds/job-001/apply", HttpMethod.POST,
+                new HttpEntity<>(applyJson, authHeaders), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
 }

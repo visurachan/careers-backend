@@ -2,6 +2,7 @@ package com.careers.backend.jobApplication;
 
 import com.careers.backend.auth.User;
 import com.careers.backend.auth.UserRepository;
+import com.careers.backend.common.exception.DuplicateApplicationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,9 @@ public class ApplicationService {
         User candidate = userRepository.findByEmail(candidateEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (repository.existsByJobAdIdAndCandidateEmail(jobAdId, candidateEmail)) {
+            throw new DuplicateApplicationException();
+        }
         JobApplication application = new JobApplication(
                 null,
                 jobAdId,

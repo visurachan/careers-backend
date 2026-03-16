@@ -83,6 +83,15 @@ public class GlobalExceptionHandler {
                         request.getRequestURI(), LocalDateTime.now().toString()));
     }
 
+    @ExceptionHandler(DuplicateApplicationException.class)
+    public ResponseEntity<ErrorResponseDto> handleDuplicateApplication(
+            DuplicateApplicationException e, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponseDto(409, "CONFLICT",
+                        e.getMessage(),
+                        request.getRequestURI(), LocalDateTime.now().toString()));
+    }
+
 
     // ── Helper ──────────────────────────────────────────────────────────────
     private ResponseEntity<ErrorResponseDto> buildError(
