@@ -93,6 +93,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/jobAds").hasRole("COMPANY")
+                        .requestMatchers(HttpMethod.POST, "/api/jobAds/{id}/apply").hasRole("CANDIDATE")
                         .anyRequest().authenticated()
 
                 )

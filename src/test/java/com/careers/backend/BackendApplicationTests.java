@@ -284,4 +284,21 @@ class BackendApplicationTests {
         assertThat((String) doc.read("$.appliedAt")).isNotNull();
 
     }
+
+    @Test
+    void shouldReturn403_whenCompanyTriesToApplyForJob() {
+        JobAdvert jobAd = new JobAdvert("job-001", "Java Developer", "5+ years", "London",
+                LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        repository.save(jobAd);
+
+        String applyJson = """
+            {"coverNote":"I want to apply."}
+            """;
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds/job-001/apply", HttpMethod.POST,
+                authRequest(applyJson), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
 }
