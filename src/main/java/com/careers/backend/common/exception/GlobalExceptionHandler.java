@@ -71,6 +71,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGeneralError(
             Exception ex, HttpServletRequest request) {
+        ex.printStackTrace();
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
                 "An internal error occurred. Please try again later.", request);
     }
@@ -91,6 +92,8 @@ public class GlobalExceptionHandler {
                         e.getMessage(),
                         request.getRequestURI(), LocalDateTime.now().toString()));
     }
+
+
 
 
     // ── Helper ──────────────────────────────────────────────────────────────

@@ -342,4 +342,57 @@ class BackendApplicationTests {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
+
+    @Test
+    void shouldReturnMyApplications() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String companyRegisterJson = """
+            {"name":"Tech Company","email":"company@test.com","password":"password123","role":"COMPANY"}
+            """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(companyRegisterJson, headers), String.class);
+
+        JobAdvert jobAd = new JobAdvert("job-001", "Java Developer", "5+ years", "London",
+                LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "company@test.com");
+        repository.save(jobAd);
+
+        String registerJson = """
+            {"name":"John Candidate","email":"j.candidate@test.com","password":"password456","role":"CANDIDATE"}
+            """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(registerJson, headers), String.class);
+
+        String loginJson = """
+            {"email":"j.candidate@test.com","password":"password456"}
+            """;
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(loginJson, headers), String.class);
+        String candidateToken = JsonPath.parse(loginResponse.getBody()).read("$.token");
+
+        String applyJson = """
+            {"coverNote":"I am very interested in this role."}
+            """;
+        HttpHeaders authHeaders = new HttpHeaders();
+        authHeaders.setContentType(MediaType.APPLICATION_JSON);
+        authHeaders.setBearerAuth(candidateToken);
+
+        restTemplate.exchange("/api/jobAds/job-001/apply", HttpMethod.POST,
+                new HttpEntity<>(applyJson, authHeaders), String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds/my/applications", HttpMethod.GET,
+                new HttpEntity<>(authHeaders), String.class);
+        System.out.println(response.getBody());
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((int) doc.read("$.totalElements")).isEqualTo(1);
+        assertThat((String) doc.read("$.content[0].jobAdId")).isEqualTo("job-001");
+        assertThat((String) doc.read("$.content[0].jobTitle")).isEqualTo("Java Developer");
+        assertThat((String) doc.read("$.content[0].companyName")).isEqualTo("Tech Company");
+        assertThat((String) doc.read("$.content[0].coverNote")).isEqualTo("I am very interested in this role.");
+        assertThat((String) doc.read("$.content[0].status")).isEqualTo("SUBMITTED");
+    }
 }

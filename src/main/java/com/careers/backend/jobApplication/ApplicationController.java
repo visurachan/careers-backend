@@ -1,16 +1,23 @@
 package com.careers.backend.jobApplication;
 
+import com.careers.backend.jobAdvert.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/jobAds")
@@ -61,5 +68,48 @@ public class ApplicationController {
         String email = jwt.getSubject();
         ApplicationResponseDto response = service.applyForJob(id, email, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/my/applications")
+    @Operation(
+            summary = "Get my applications",
+            description = "Retrieve all job applications submitted by the authenticated candidate. " +
+                    "**Requires authentication.** Only users with the **CANDIDATE** role can access this. " +
+                    "First login via `/api/auth/login` to get a token, then use the Authorize button (🔓)."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Applications retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized – JWT token missing or invalid"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden – Only CANDIDATE users can view their applications"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public PageResponse<JobApplicationDtoCandidateView> getAllMyApplications(
+            @AuthenticationPrincipal Jwt jwt,
+            @Parameter(description = "Page number, starting from 0", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Number of records per page", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        String email = jwt.getSubject();
+        Page<JobApplicationDtoCandidateView> myApplicationsPage = service.getAllMyApplications(email, page, size);
+
+        return new PageResponse<>(
+                myApplicationsPage.getContent(),
+                myApplicationsPage.getTotalPages(),
+                myApplicationsPage.getTotalElements(),
+                myApplicationsPage.getNumber(),
+                myApplicationsPage.getSize()
+        );
     }
 }

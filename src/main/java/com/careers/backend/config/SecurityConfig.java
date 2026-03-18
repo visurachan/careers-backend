@@ -94,6 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/jobAds").hasRole("COMPANY")
                         .requestMatchers(HttpMethod.POST, "/api/jobAds/{id}/apply").hasRole("CANDIDATE")
+                        .requestMatchers(HttpMethod.GET, "/api/jobAds/my/applications").hasRole("CANDIDATE")
                         .anyRequest().authenticated()
 
                 )
