@@ -52,13 +52,16 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 
 ## 📋 API Endpoints
 
-| Method | Endpoint                    | Description                         | Status |
-|--------|-----------------------------|-------------------------------------|--------|
-| GET    | `/api/jobAds/{id}`          | Retrieve specific job advertisement | ✅ Live |
-| GET    | `/api/jobAds`               | List all job advertisements         | ✅ Live |
-| POST   | `/api/jobAds`               | Post a new job advertisement        |    ✅ Live    |
-| POST   | `/api/auth/registerNewUser` | Register a new User                 |       ✅ Live           |
-| POST   | `/api/auth/login`            | Login and receive JWT Token         |        ✅ Live                |
+| Method | Endpoint                   | Description                                         | Status            |
+|--------|----------------------------|-----------------------------------------------------|-------------------|
+| GET    | `/api/jobAds/{id}`         | Retrieve specific job advertisement                 | ✅ Live            |
+| GET    | `/api/jobAds`              | List all job advertisements                         | ✅ Live            |
+| POST   | `/api/jobAds`              | Post a new job advertisement                        | ✅ Live            |
+| POST   | `/api/auth/registerNewUser` | Register a new User                                 | ✅ Live            |
+| POST   | `/api/auth/login`          | Login and receive JWT Token                         | ✅ Live            |
+| POST   | `/api/ jobAds/{id}/apply`  | Submit a job application                            | ✅ Live            |
+| GET    | `/api/jobAds/my/applications` | Candidate views thier applications                  | ✅ Live            |
+|  GET   |`/api/jobAds/{id}/applications`| Company view job applications     |            ✅ Live |
 
 
 *API expanding incrementally with new features*
@@ -82,6 +85,9 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 - User login
 - Associate job ads with posting user
 - Role-based access control (COMPANY/CANDIDATE/ADMIN) - Only COMPANY can post jobs
+- Job application submission (CANDIDATE role only, duplicate prevention)
+- Candidates can view their own applications
+- Companies can view applications for their job ads
 
 ### 🔄 In Progress
 
@@ -90,8 +96,7 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 
 ### 📋 Planned (Next 2-4 Weeks)
 
-- Job application submission
-- Application management dashboard
+- Update application status (REVIEWING, INTERVIEW, REJECTED, ACCEPTED)
 - CV upload to AWS S3
 - Email notifications
 

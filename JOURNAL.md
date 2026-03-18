@@ -473,3 +473,246 @@ Updated `AuthServiceTest` to stub `generateToken()` with the role parameter. Upd
 ### Immediate Next Steps
 - View job ads posted by a specific company
 - Job application submission endpoint
+
+
+## 07/03/2026
+
+### Main Work Done
+
+Implemented JWT login endpoint, replaced Basic Auth with Bearer token authentication, updated all integration tests to use JWT, and deployed to Render with full end-to-end testing.
+
+### Work Done
+
+#### JWT Login — POST /api/auth/login
+
+Implemented using outside-in TDD approach — integration test first, then controller, service, and repository layers. Login authenticates via `AuthenticationManager` delegating to `DaoAuthenticationProvider` → `UserDetailsService` → BCrypt comparison. On success `JwtService` generates a signed HMAC-SHA256 token returned in the response body.
+
+#### Circular Dependency Resolution
+
+Original design caused a three-way cycle: `AuthService` → `AuthenticationManager` → `UserDetailsService` → `AuthService`. Fixed by moving `authenticate()` out of `AuthService` into `AuthController`. `AuthService` now only handles user lookup and token generation.
+
+#### JWT Security Filter Chain
+
+Replaced Basic Auth with Bearer token authentication. Public endpoints are all GET job ad routes and both auth endpoints. All other endpoints require a valid JWT. `BadCredentialsException` handled explicitly in `GlobalExceptionHandler` returning 401 with a generic message to prevent user enumeration.
+
+#### Integration Test Migration
+
+All job ad integration tests migrated from Basic Auth to Bearer token. Added a `getToken()` helper and `userRepository.deleteAll()` in `@BeforeEach` to prevent 409 conflicts between tests.
+
+#### Swagger UI Authentication
+
+Added `SecurityScheme` to `OpenApiConfig` so the Authorize button appears in Swagger UI. Added documentation to login and POST job ad endpoints guiding users through the register → login → authorize flow.
+
+### Things Learned
+
+**Circular dependency in Spring Security:** When a service implements `UserDetailsService` and also needs `AuthenticationManager`, move the `authenticate()` call to the controller to break the cycle.
+
+**Base64-encoded secrets are mandatory:** `Decoders.BASE64.decode()` crashes at startup with plain text secrets containing hyphens or special characters. Both test and production properties must use properly Base64-encoded values.
+
+**`@WebMvcTest` masks security config bugs:** Controller tests with `addFilters=false` never load `SecurityConfig` so they pass even if the config is broken. Only `@SpringBootTest` catches these issues — another reason integration tests are the real safety net.
+
+**`BadCredentialsException` covers both wrong email and wrong password:** Spring Security throws the same exception for both cases intentionally to prevent user enumeration.
+
+### Status
+- Tests: all passing ✅
+- POST /api/auth/login: live in production ✅
+- Bearer token authentication: live ✅
+- Swagger UI authentication: working ✅
+
+### Immediate Next Steps
+- Associate job ads with the user who posted them
+- Role-based access control — only `COMPANY` role can post job ads
+- Update README roadmap
+
+
+## 09/03/2026
+
+### Main Work Done
+
+Associated job ads with the authenticated user who posted them by adding a `postedBy` field, and migrated `JobAdControllerTest` to `@WebMvcTest` with real security context.
+
+### Work Done
+
+#### postedBy Field — JobAdvert
+
+Added `postedBy` as a plain string field to the `JobAdvert` entity and `JobAdDtoAllFields` response DTO. Updated `createNewJob` service method to accept email as a parameter. Updated `JobAdController` to extract the authenticated user's email from the JWT via `@AuthenticationPrincipal` and pass it to the service. Hibernate's `ddl-auto=update` automatically adds the `posted_by` column to the production database on next deploy.
+
+#### Controller Test Migration
+
+Migrated `JobAdControllerTest` from `standaloneSetup` to `@WebMvcTest` with real `SecurityConfig` loaded. Previous `standaloneSetup` approach didn't support `@AuthenticationPrincipal` injection. Added `@TestPropertySource` with the test JWT secret and `@MockBean AuthService` to satisfy `SecurityConfig` dependencies.
+
+### Things Learned
+
+**`standaloneSetup` doesn't support Spring Security features:** `@AuthenticationPrincipal` injection requires a real security context. Once `SecurityConfig` needs to be loaded in controller tests, `standaloneSetup` must be replaced with `@WebMvcTest`.
+
+**`anonymous()` vs `jwt()` in `@WebMvcTest`:** Public endpoints need `.with(anonymous())` and protected endpoints need `.with(jwt())` when testing with a real security filter chain.
+
+### Status
+- Tests: all passing ✅
+- postedBy field: live on next deploy ✅
+
+### Immediate Next Steps
+- Role-based access control — only `COMPANY` role can post job ads
+
+
+## 12/03/2026
+
+### Main Work Done
+
+Implemented role-based access control restricting job ad posting to COMPANY users only, and added proper JSON error responses for 403 Forbidden cases.
+
+### Work Done
+
+#### Role-Based Access Control — POST /api/jobAds
+
+Added role claim to JWT token on login. `JwtService.generateToken()` now accepts the user's role as a parameter. `AuthService.login()` fetches the user from the database to retrieve their role and passes it to `JwtService`. Added `JwtAuthenticationConverter` to `SecurityConfig` to extract the `role` claim from the JWT and convert it to a `ROLE_` prefixed Spring Security authority. Updated `SecurityConfig` to restrict `POST /api/jobAds` to `ROLE_COMPANY` only.
+
+#### Custom 403 Response
+
+Added `CustomAccessDeniedHandler` in the `auth` package to return a consistent JSON error body when a user with insufficient privileges attempts a protected action. Wired into `SecurityConfig` via `exceptionHandling()` alongside the existing `CustomAuthenticationEntryPoint`.
+
+#### Test Updates
+
+Updated `AuthServiceTest` to stub `generateToken()` with the role parameter. Updated `JobAdControllerTest` to set authorities directly via `.authorities(new SimpleGrantedAuthority("ROLE_COMPANY"))` rather than relying on the JWT converter — the converter does not run in the `@WebMvcTest` context. Role restriction is tested at the integration level where the full security stack is loaded. Added `CustomAccessDeniedHandler` as `@MockBean` in `JobAdControllerTest` to satisfy `SecurityConfig` context loading.
+
+### Things Learned
+
+**Security policy belongs at the integration test level:** Role-based access rules involve the full security filter chain and JWT converter. These don't wire correctly in `@WebMvcTest` when using `.claim()` — use `.authorities()` directly for controller tests, and rely on integration tests for end-to-end security policy verification.
+
+**`@WebMvcTest` mocks break handler behaviour:** `CustomAccessDeniedHandler` and `CustomAuthenticationEntryPoint` must be added as `@MockBean` when importing `SecurityConfig` — but mocking them means their response-writing logic doesn't execute. Security enforcement still works; only the custom response body is bypassed in controller tests.
+
+### Status
+- Tests: all passing ✅
+- COMPANY-only job posting: live on next deploy ✅
+- JSON 403 response: live on next deploy ✅
+
+### Immediate Next Steps
+- View job ads posted by a specific company
+- Job application submission endpoint
+
+## 13/03/2026
+
+### Main Work Done
+
+Implemented filtering job ads by company email via an optional `postedBy` query parameter.
+
+### Work Done
+
+#### Filter Job Ads by Company — GET /api/jobAds?postedBy=email
+
+Added optional `postedBy` query parameter to the existing `GET /api/jobAds` endpoint. When provided, returns only job ads posted by that company. When omitted, returns all job ads as before — fully backwards compatible. Updated `JobAdService.getAllJobAds()` to accept an optional `postedBy` parameter and conditionally call `repository.findByPostedBy()` or `repository.findAll()`. Added `findByPostedBy()` to `JobAdRepository` — Spring Data JPA derives the query automatically from the method name.
+
+### Things Learned
+
+**One method, optional parameter is cleaner than two methods:** Rather than having separate `getAllJobAds()` and `getJobAdsByCompany()` methods, a single method with a nullable `postedBy` parameter handles both cases with a simple null check.
+
+**Spring Data derived queries:** Adding `findByPostedBy(String postedBy, Pageable pageable)` to the repository interface is all that's needed — no SQL or JPQL required. Spring Data generates the query from the method name automatically.
+
+### Status
+- Tests: all passing ✅
+- Filter by company email: live on next deploy ✅
+
+### Immediate Next Steps
+- Job application submission endpoint
+
+---
+
+## 14/03/2026
+
+### Main Work Done
+
+Implemented job application submission endpoint allowing candidates to apply for job ads.
+
+### Work Done
+
+#### Job Application Submission — POST /api/jobAds/{id}/apply
+
+Created the `application` package with `Application` entity, `ApplicationRepository`, `ApplicationService`, `ApplicationController`, `ApplicationRequestDto`, `ApplicationResponseDto`, and `ApplicationStatus` enum. The candidate only sends a `coverNote` in the request body — all other fields are set server-side. Candidate email is extracted from the JWT via `@AuthenticationPrincipal`. Candidate name is looked up from `UserRepository` using the email. Status is set to `SUBMITTED` automatically. Applied at timestamp is set server-side.
+
+#### ApplicationStatus Enum
+
+Added `SUBMITTED`, `REVIEWING`, `INTERVIEW`, `REJECTED`, `ACCEPTED` states to support the full application lifecycle.
+
+### Things Learned
+
+**Client should never send identity data:** The candidate's email and name come from the JWT and database respectively — never from the request body. This prevents candidates from impersonating others.
+
+**Service layer owns enrichment:** The controller extracts the email from the JWT and passes it to the service. The service looks up the candidate's name. Each layer has a single responsibility.
+
+### Status
+- Tests: all passing ✅
+- POST /api/jobAds/{id}/apply: live on next deploy ✅
+
+### Immediate Next Steps
+- Prevent duplicate applications
+- Restrict application submission to CANDIDATE role only
+
+---
+
+## 16/03/2026
+
+### Main Work Done
+
+Prevented duplicate applications and restricted job application submission to CANDIDATE role only.
+
+### Work Done
+
+#### Duplicate Application Prevention
+
+Added `existsByJobAdIdAndCandidateEmail()` to `ApplicationRepository`. Added a duplicate check in `ApplicationService.applyForJob()` before saving — throws `DuplicateApplicationException` if the candidate has already applied for that job. Added handler in `GlobalExceptionHandler` returning 409 Conflict with a clear error message.
+
+#### CANDIDATE-Only Restriction
+
+Added `hasRole("CANDIDATE")` rule to `SecurityConfig` for `POST /api/jobAds/{id}/apply`. Added integration test asserting a COMPANY user receives 403 when attempting to apply. Moved specific security rules above the wildcard `GET /api/jobAds/**` permitAll rule to ensure correct rule ordering — Spring Security processes rules top to bottom, first match wins.
+
+### Things Learned
+
+**Spring Security rule ordering matters:** More specific rules must come before wildcard rules. `GET /api/jobAds/my/applications` was being matched by `GET /api/jobAds/**` before the CANDIDATE restriction could apply — fixed by reordering rules.
+
+**`existsBy` queries in Spring Data:** `existsByJobAdIdAndCandidateEmail()` is a derived query that returns a boolean — cleaner and more efficient than fetching the full entity just to check existence.
+
+### Status
+- Tests: all passing ✅
+- Duplicate application prevention: live on next deploy ✅
+- CANDIDATE-only application restriction: live on next deploy ✅
+
+### Immediate Next Steps
+- Candidates view their own applications
+- Companies view applications for their job ads
+
+---
+
+## 18/03/2026
+
+### Main Work Done
+
+Implemented two application viewing endpoints — candidates view their own applications and companies view applications for their job ads.
+
+### Work Done
+
+#### Candidate View — GET /api/jobAds/my/applications
+
+Returns a paginated list of all applications submitted by the authenticated candidate. Service enriches each application with `jobTitle` and `companyName` — looked up from `JobAdvert` and `User` repositories respectively since these fields aren't stored on the `Application` entity. Restricted to CANDIDATE role only.
+
+#### Company View — GET /api/jobAds/{id}/applications
+
+Returns a paginated list of all candidate applications for a specific job ad. Service verifies the requesting company owns the job ad before returning results — throws `AccessDeniedException` if the job ad belongs to a different company. Restricted to COMPANY role only.
+
+#### JobApplicationDtoCandidateView and JobApplicationDtoCompanyView
+
+Two separate response DTOs — candidates see job title and company name, companies see candidate name and email. Each view exposes only what's relevant to that role.
+
+### Things Learned
+
+**Ownership verification before data access:** Before returning applications for a job ad, the service checks `jobAd.getPostedBy().equals(companyEmail)`. This prevents companies from viewing applications for job ads they don't own — a simple but important authorization check at the data level beyond just role-based access.
+
+**Look up once, map many:** When enriching a page of applications with job ad data, fetch the `JobAdvert` once outside the `map()` loop rather than once per application — avoids N+1 queries.
+
+### Status
+- Tests: all passing ✅
+- GET /api/jobAds/my/applications: live on next deploy ✅
+- GET /api/jobAds/{id}/applications: live on next deploy ✅
+
+### Immediate Next Steps
+- Update application status (PATCH endpoint for company)
+- CV upload to AWS S3
