@@ -91,10 +91,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/registerNewUser").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/jobAds").hasRole("COMPANY")
                         .requestMatchers(HttpMethod.POST, "/api/jobAds/{id}/apply").hasRole("CANDIDATE")
                         .requestMatchers(HttpMethod.GET, "/api/jobAds/my/applications").hasRole("CANDIDATE")
+                        .requestMatchers(HttpMethod.GET, "/api/jobAds/{id}/applications").hasRole("COMPANY")
+                        .requestMatchers(HttpMethod.GET,"/api/jobAds/**").permitAll()
                         .anyRequest().authenticated()
 
                 )

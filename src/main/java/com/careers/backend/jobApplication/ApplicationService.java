@@ -9,6 +9,7 @@ import com.careers.backend.jobAdvert.JobAdvert;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -82,5 +83,28 @@ public class ApplicationService {
         });
 
 
+    }
+
+    public Page<JobApplicationDtoCompanyView> getCandidateApplications(String jobAdId, String email, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        JobAdvert jobAd = jobAdRepository.findById(jobAdId)
+                .orElseThrow(() -> new JobAdNotFoundException(jobAdId));
+
+        if (!jobAd.getPostedBy().equals(email)) {
+            throw new AccessDeniedException("You do not own this job ad");
+        }
+
+        Page<JobApplication> applications = repository.findByJobAdId(jobAdId, pageable);
+
+        return applications.map(application -> new JobApplicationDtoCompanyView(
+                application.getId(),
+                jobAd.getTitle(),
+                application.getCandidateName(),
+                application.getCandidateEmail(),
+                application.getCoverNote(),
+                application.getAppliedAt(),
+                application.getStatus()
+        ));
     }
 }

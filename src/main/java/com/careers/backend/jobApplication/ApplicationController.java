@@ -112,4 +112,54 @@ public class ApplicationController {
                 myApplicationsPage.getSize()
         );
     }
+
+    @GetMapping("/{id}/applications")
+    @Operation(
+            summary = "View applications for a job ad",
+            description = "Retrieve all candidate applications for a specific job ad. " +
+                    "**Requires authentication.** Only users with the **COMPANY** role can access this. " +
+                    "The company can only view applications for job ads they posted. " +
+                    "First login via `/api/auth/login` to get a token, then use the Authorize button (🔓)."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Applications retrieved successfully"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized – JWT token missing or invalid"
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden – Only COMPANY users can view applications, or job ad does not belong to you"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Job ad not found"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Internal server error"
+            )
+    })
+    public PageResponse<JobApplicationDtoCompanyView> getCandidateApplications(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
+            @Parameter(description = "Page number, starting from 0", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Number of records per page", example = "10")
+            @RequestParam(defaultValue = "10") int size) {
+        String email = jwt.getSubject();
+        Page<JobApplicationDtoCompanyView> candidateApplicationsPage = service.getCandidateApplications(id, email, page, size);
+
+        return new PageResponse<>(
+                candidateApplicationsPage.getContent(),
+                candidateApplicationsPage.getTotalPages(),
+                candidateApplicationsPage.getTotalElements(),
+                candidateApplicationsPage.getNumber(),
+                candidateApplicationsPage.getSize()
+        );
+    }
+
 }

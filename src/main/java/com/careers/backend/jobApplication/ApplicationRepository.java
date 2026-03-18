@@ -8,4 +8,6 @@ public interface ApplicationRepository extends JpaRepository<JobApplication,Long
 
     boolean existsByJobAdIdAndCandidateEmail(String jobAdId, String candidateEmail);
     Page<JobApplication> findByCandidateEmail(String candidateEmail, Pageable pageable);
+
+    Page<JobApplication> findByJobAdId(String jobAdId, Pageable pageable);
 }
