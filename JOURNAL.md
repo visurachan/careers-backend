@@ -716,3 +716,28 @@ Two separate response DTOs — candidates see job title and company name, compan
 ### Immediate Next Steps
 - Update application status (PATCH endpoint for company)
 - CV upload to AWS S3
+
+
+## 19/03/2026
+
+### Main Work Done
+
+Implemented application status update endpoint allowing companies to move candidates through the hiring pipeline.
+
+### Work Done
+
+#### Update Application Status — PATCH /api/jobAds/{id}/applications/{applicationId}/status
+
+Added `PATCH` endpoint for companies to update a candidate's application status. Request body contains only the new status. Service performs three validation checks before updating: job ad exists, company owns the job ad, and the application belongs to the specified job ad. Status is updated and the full updated application is returned in the response.
+
+#### ApplicationStatusUpdateDto
+
+Added a simple request DTO containing just the new `ApplicationStatus` value. The client sends only what needs to change — nothing else.
+
+
+### Status
+- Tests: all passing ✅
+- PATCH /api/jobAds/{id}/applications/{applicationId}/status: ready to deploy ✅
+
+### Immediate Next Steps
+- CV upload to AWS S3
