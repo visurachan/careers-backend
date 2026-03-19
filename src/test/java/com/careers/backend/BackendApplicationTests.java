@@ -4,6 +4,7 @@ import com.careers.backend.auth.UserRepository;
 import com.careers.backend.jobAdvert.JobAdStatus;
 import com.careers.backend.jobAdvert.JobAdvert;
 import com.careers.backend.jobAdvert.JobAdRepository;
+import com.careers.backend.jobApplication.ApplicationRepository;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,12 +32,16 @@ class BackendApplicationTests {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
     private String token;
 
     @BeforeEach
     void setUp() {
         repository.deleteAll();
         userRepository.deleteAll();
+        applicationRepository.deleteAll();
 
         JobAdvert testJob = new JobAdvert("99", "Test Developer Position");
         repository.save(testJob);
@@ -403,13 +408,13 @@ class BackendApplicationTests {
 
         // register a candidate
         String candidateRegisterJson = """
-            {"name":"John Candidate","email":"j.candidate@test.com","password":"password456","role":"CANDIDATE"}
+            {"name":"John Status","email":"status.john@test.com","password":"password456","role":"CANDIDATE"}
             """;
         restTemplate.postForEntity("/api/auth/registerNewUser",
                 new HttpEntity<>(candidateRegisterJson, headers), String.class);
 
         String candidateLoginJson = """
-            {"email":"j.candidate@test.com","password":"password456"}
+            {"email":"status.john@test.com","password":"password456"}
             """;
         ResponseEntity<String> candidateLoginResponse = restTemplate.postForEntity(
                 "/api/auth/login", new HttpEntity<>(candidateLoginJson, headers), String.class);
@@ -439,10 +444,64 @@ class BackendApplicationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         DocumentContext doc = JsonPath.parse(response.getBody());
         assertThat((int) doc.read("$.totalElements")).isEqualTo(1);
-        assertThat((String) doc.read("$.content[0].candidateName")).isEqualTo("John Candidate");
-        assertThat((String) doc.read("$.content[0].candidateEmail")).isEqualTo("j.candidate@test.com");
+        assertThat((String) doc.read("$.content[0].candidateName")).isEqualTo("John Status");
+        assertThat((String) doc.read("$.content[0].candidateEmail")).isEqualTo("status.john@test.com");
         assertThat((String) doc.read("$.content[0].jobTitle")).isEqualTo("Java Developer");
         assertThat((String) doc.read("$.content[0].coverNote")).isEqualTo("I am very interested in this role.");
         assertThat((String) doc.read("$.content[0].status")).isEqualTo("SUBMITTED");
+    }
+
+    @Test
+    void shouldUpdateApplicationStatus() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // register and login candidate
+        String candidateRegisterJson = """
+            {"name":"John Candidate","email":"j.candidate@test.com","password":"password456","role":"CANDIDATE"}
+            """;
+        restTemplate.postForEntity("/api/auth/registerNewUser",
+                new HttpEntity<>(candidateRegisterJson, headers), String.class);
+
+        String candidateLoginJson = """
+            {"email":"j.candidate@test.com","password":"password456"}
+            """;
+        ResponseEntity<String> candidateLoginResponse = restTemplate.postForEntity(
+                "/api/auth/login", new HttpEntity<>(candidateLoginJson, headers), String.class);
+        String candidateToken = JsonPath.parse(candidateLoginResponse.getBody()).read("$.token");
+
+        // save job ad posted by test@test.com (COMPANY registered in setUp)
+        JobAdvert jobAd = new JobAdvert("job-001", "Java Developer", "5+ years", "London",
+                LocalDate.of(2026, 12, 31), LocalDateTime.now(), JobAdStatus.LIVE, "test@test.com");
+        repository.save(jobAd);
+
+        // candidate applies
+        HttpHeaders candidateAuthHeaders = new HttpHeaders();
+        candidateAuthHeaders.setContentType(MediaType.APPLICATION_JSON);
+        candidateAuthHeaders.setBearerAuth(candidateToken);
+
+        String applyJson = """
+            {"coverNote":"I am very interested in this role."}
+            """;
+        ResponseEntity<String> applyResponse = restTemplate.exchange(
+                "/api/jobAds/job-001/apply", HttpMethod.POST,
+                new HttpEntity<>(applyJson, candidateAuthHeaders), String.class);
+
+        System.out.println("Apply response: " + applyResponse.getBody());
+        System.out.println("Apply status: " + applyResponse.getStatusCode());
+
+        Long applicationId = ((Number) JsonPath.parse(applyResponse.getBody()).read("$.id")).longValue();
+
+        // company updates status
+        String statusJson = """
+            {"status":"REVIEWING"}
+            """;
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/api/jobAds/job-001/applications/" + applicationId + "/status",
+                HttpMethod.PATCH, authRequest(statusJson), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        DocumentContext doc = JsonPath.parse(response.getBody());
+        assertThat((String) doc.read("$.status")).isEqualTo("REVIEWING");
     }
 }

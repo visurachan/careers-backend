@@ -6,6 +6,7 @@ import com.careers.backend.common.exception.DuplicateApplicationException;
 import com.careers.backend.jobAdvert.JobAdNotFoundException;
 import com.careers.backend.jobAdvert.JobAdRepository;
 import com.careers.backend.jobAdvert.JobAdvert;
+import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -106,5 +107,35 @@ public class ApplicationService {
                 application.getAppliedAt(),
                 application.getStatus()
         ));
+    }
+
+    public ApplicationResponseDto changeApplicationStatus(String email, String id, Long applicationId, ApplicationStatusUpdateDto request) {
+
+
+        JobAdvert jobAd = jobAdRepository.findById(id)
+                .orElseThrow(() -> new JobAdNotFoundException(id));
+
+        if (!jobAd.getPostedBy().equals(email)) {
+            throw new AccessDeniedException("You do not own this job ad");
+        }
+        JobApplication application = repository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application Not Found" ));
+
+        if (!application.getJobAdId().equals(id)) {
+            throw new AccessDeniedException("Application does not belong to this job ad");
+        }
+        application.setStatus(request.status());
+        JobApplication saved = repository.save(application);
+
+
+        return new ApplicationResponseDto(
+                saved.getId(),
+                saved.getJobAdId(),
+                saved.getCandidateEmail(),
+                saved.getCandidateName(),
+                saved.getCoverNote(),
+                saved.getAppliedAt(),
+                saved.getStatus()
+        );
     }
 }

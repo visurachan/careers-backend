@@ -162,4 +162,19 @@ public class ApplicationController {
         );
     }
 
+
+    @PatchMapping("/{id}/applications/{applicationId}/status")
+    public ResponseEntity<ApplicationResponseDto> changeApplicationStatus(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
+            @PathVariable Long applicationId,
+            @RequestBody ApplicationStatusUpdateDto status){
+        String email = jwt.getSubject();
+        ApplicationResponseDto response = service.changeApplicationStatus(email,id,applicationId, status);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+
+
+    }
+
 }
