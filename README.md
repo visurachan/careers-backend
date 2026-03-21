@@ -20,14 +20,14 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 
 ## 📋 API Endpoints
 
-| Method | Endpoint                      | Description                                     | Status            |
-|--------|-------------------------------|-------------------------------------------------|-------------------|
-| GET    | `/api/jobAds/{id}`            | Retrieve specific job advertisement             | ✅ Live            |
-| GET    | `/api/jobAds`                 | List all job advertisements                     | ✅ Live            |
-| POST   | `/api/jobAds`                 | Post a new job advertisement                    | ✅ Live            |
-| POST   | `/api/auth/registerNewUser`   | Register a new User                             | ✅ Live            |
-| POST   | `/api/auth/login`             | Login and receive JWT Token                     | ✅ Live            |
-| POST   | `/api/ jobAds/{id}/apply`     | Submit a job application with optional cv.pdf   | ✅ Live            |
+| Method | Endpoint                     | Description                                     | Status            |
+|--------|------------------------------|-------------------------------------------------|-------------------|
+| GET    | `/api/jobAds/{id}`           | Retrieve specific job advertisement             | ✅ Live            |
+| GET    | `/api/jobAds`                | List all job advertisements                     | ✅ Live            |
+| POST   | `/api/jobAds`                | Post a new job advertisement                    | ✅ Live            |
+| POST   | `/api/auth/registerNewUser`  | Register a new User                             | ✅ Live            |
+| POST   | `/api/auth/login`            | Login and receive JWT Token                     | ✅ Live            |
+| POST   | `/api/jobAds/{id}/apply`     | Submit a job application with optional cv.pdf   | ✅ Live            |
 | GET    | `/api/jobAds/my/applications` | Candidate views thier applications              | ✅ Live            |
 | GET    | `/api/jobAds/{id}/applications` | Company view job applications                   |            ✅ Live |
 | PATCH  | `/api/jobAds/{id}/applications/{applicationId}/status`| Company can update the status of an application |         ✅ Live          |
@@ -37,65 +37,28 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 
 ## 🎯 What Makes This Project Different
 
-This isn't just another CRUD application. This project demonstrates **real-world engineering practices** used by professional development teams:
+This isn't just another CRUD application. 
 
-### ✨ Live Production System
-- **🚀 Deployed and Running:** Every feature is live in production immediately after development
-- **🔄 Continuous Deployment:** Code pushed to GitHub automatically tests and deploys to cloud infrastructure
-- **📊 Zero Downtime:** Updates happen seamlessly without service interruption
-
-### 🧪 Test-Driven Development (TDD)
-- **Tests Written First:** Every feature starts with failing tests, then minimal code to pass
-- **Comprehensive Test Suite:** Every endpoint covered by unit tests, controller slice tests, and end-to-end integration tests following strict TDD — tests written before implementation
-- **Confidence in Changes:** Comprehensive test suite catches regressions immediately
-
-### 🔁 Professional CI/CD Pipeline
-- **Automated Quality Gates:** Tests must pass before any deployment
-- **GitHub Actions Integration:** Every push triggers automated testing and deployment
-- **Production-Ready Workflow:** Same process used by professional engineering teams
-
-### 🏗️ Incremental Feature Development
-- **Feature-by-Feature Deployment:** Each endpoint goes live individually, not all at once
-- **Iterative Approach:** Start simple, add complexity incrementally
-- **Real-World Simulation:** Mirrors how actual product teams ship features
-
-### 🎓 Learning Through Building
-This project serves as a **living demonstration** of:
-- How to structure a production backend application
-- How to implement CI/CD from day one
-- How TDD guides better design decisions
-- How to deploy continuously with confidence
-
-
+- **Outside-In TDD:** Every feature starts with a failing integration test, working inward through controller and service layers before any implementation
+- **CI/CD from day one:** Every push triggers automated testing via GitHub Actions — code only reaches production if all tests pass
+- **Incremental delivery:** Each endpoint is developed and deployed independently, mirroring how real product teams ship features
+- **Production-grade security:** JWT authentication, role-based access control, private S3 bucket with IAM least-privilege policy and expiring presigned URLs
 
 ---
 
 
-## 📊 Project Roadmap
+## ✅ Features
 
-### ✅ Completed
-- Basic job advertisement CRUD (GET by ID)
-- CI/CD pipeline with GitHub Actions
-- Docker containerization
-- Production deployment
-- Comprehensive test suite
-- API documentation
-- List all job ads with pagination (optional filtering by postedBy query parameter)
-- Job posting (/api/jobAds)
-- User registration (COMPANY/CANDIDATE/ADMIN roles)
-- JWT-based authentication
-- User login
-- Associate job ads with posting user
-- Role-based access control (COMPANY/CANDIDATE/ADMIN) - Only COMPANY can post jobs
-- Job application submission (CANDIDATE role only, duplicate prevention)
+- Job advertisement CRUD with pagination and filtering by company
+- User registration with roles — `COMPANY` and `CANDIDATE`
+- JWT authentication and role-based access control
+- Job application submission with duplicate prevention (candidates only)
+- Optional CV upload as PDF — stored securely in AWS S3
+- Presigned download URLs for CV access (15 minute expiry)
 - Candidates can view their own applications
 - Companies can view applications for their job ads
-- Companies can update application status (REVIEWING, INTERVIEW, REJECTED, ACCEPTED)
-- CV upload to AWS S3 
-
-
----
-The system is designed to expand incrementally with additional features.
+- Companies can update application status (`SUBMITTED` → `REVIEWING` → `INTERVIEW` → `ACCEPTED` / `REJECTED`)
+- Automated CI/CD pipeline — tests must pass before deployment
 
 ---
 
@@ -149,17 +112,6 @@ The goal is to demonstrate production-ready backend engineering practices rather
 
 ---
 
-## 📈 Project Vision
-
-Planned features include:
-
-- Recruiter job posting
-- Candidate job applications
-- Candidate management for recruiters
-- Authentication & role-based access
-- CV upload via AWS S3
-
----
 
 ## ⚠️ Known Gaps & Limitations
 
@@ -178,6 +130,14 @@ For full details on how this was discovered and resolved, see the **21/02/2026**
 
 **Planned fix:** Migrate integration tests to **TestContainers** — spinning up a real PostgreSQL
 container during testing to match the production database engine exactly.
+
+
+### Input Validation
+
+Request DTOs currently have no validation constraints. Invalid or missing fields (e.g. blank cover note, malformed email) are not rejected at the API layer.
+
+**Planned fix:** Add `@Valid` with Jakarta Bean Validation annotations (`@NotBlank`, `@Email`, `@Size` etc.) to all request DTOs.
+
 
 ---
 
