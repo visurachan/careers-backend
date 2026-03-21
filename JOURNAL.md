@@ -741,3 +741,39 @@ Added a simple request DTO containing just the new `ApplicationStatus` value. Th
 
 ### Immediate Next Steps
 - CV upload to AWS S3
+
+
+## 21/03/2026
+
+### Main Work Done
+
+Implemented CV upload to AWS S3 when candidates apply for jobs.
+
+### Work Done
+
+#### CV Upload — S3 Integration
+
+Added AWS SDK v2 S3 dependency. Created `S3Config` producing `S3Client` and `S3Presigner` beans, credentials read from environment variables. Created `S3Service` with two responsibilities: `uploadCv()` uploads a PDF to a private S3 bucket using a UUID key (`cvs/{uuid}.pdf`) and returns the key; `generatePresignedUrl()` generates a 15-minute expiring download URL for a given key.
+
+#### JobApplication Entity
+
+Added nullable `cvS3Key` column to store the S3 object key. Raw key is never exposed in responses — presigned URL is generated on demand and returned instead.
+
+#### Apply Endpoint Changes
+
+Updated `POST /api/jobAds/{id}/apply` to accept `multipart/form-data` with a plain text `coverNote` field and an optional `cv` PDF file. CV is uploaded to S3 before saving the application. Response includes a `cvDownloadUrl` presigned link valid for 15 minutes.
+
+#### View Applications
+
+Updated candidate and company application response DTOs to include `cvDownloadUrl`. Presigned URL generated fresh on every read request.
+
+#### AWS Setup
+
+Created private S3 bucket in `us-east-1`. Created dedicated IAM user with least-privilege inline policy scoped to `PutObject` and `GetObject` on the specific bucket only. Credentials added as environment variables on Render.
+
+### Status
+- Tests: all passing ✅
+- CV upload to S3: live and verified end-to-end ✅
+
+### Immediate Next Steps
+- Continue expanding careers portal features

@@ -59,7 +59,7 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 | POST   | `/api/jobAds`                 | Post a new job advertisement                    | ✅ Live            |
 | POST   | `/api/auth/registerNewUser`   | Register a new User                             | ✅ Live            |
 | POST   | `/api/auth/login`             | Login and receive JWT Token                     | ✅ Live            |
-| POST   | `/api/ jobAds/{id}/apply`     | Submit a job application                        | ✅ Live            |
+| POST   | `/api/ jobAds/{id}/apply`     | Submit a job application with optional cv.pdf   | ✅ Live            |
 | GET    | `/api/jobAds/my/applications` | Candidate views thier applications              | ✅ Live            |
 | GET    | `/api/jobAds/{id}/applications` | Company view job applications                   |            ✅ Live |
 | PATCH  | `/api/jobAds/{id}/applications/{applicationId}/status`| Company can update the status of an application |         ✅ Live          |
@@ -90,17 +90,8 @@ JWT authentication is required for protected endpoints. Register via `/api/auth/
 - Candidates can view their own applications
 - Companies can view applications for their job ads
 - Companies can update application status (REVIEWING, INTERVIEW, REJECTED, ACCEPTED)
+- CV upload to AWS S3 
 
-### 🔄 In Progress
-
-
-
-
-### 📋 Planned (Next 2-4 Weeks)
-
-
-- CV upload to AWS S3
-- Email notifications
 
 ---
 The system is designed to expand incrementally with additional features.
@@ -118,10 +109,15 @@ The system is designed to expand incrementally with additional features.
 - JUnit & Mockito
 - GitHub Actions (CI/CD pipe line)
 - Render (Deployment)
-- AWS S3 (Planned for CV uploads)
+- AWS S3 (for CV uploads)
 
 ---
+## ☁️ File Storage
 
+CV uploads are stored securely in **AWS S3** (private bucket, `us-east-1`).  
+Files are never publicly accessible — download links are **pre-signed URLs** that expire after 15 minutes.
+
+---
 ## 🔄 CI/CD Pipeline
 
 Every code push triggers an automated workflow:
