@@ -28,4 +28,8 @@ public class JobApplication {
 
     @Enumerated(EnumType.STRING)
     private ApplicationStatus status;
+
+    @Column(nullable = true)
+    private String cvS3Key;
+
 }

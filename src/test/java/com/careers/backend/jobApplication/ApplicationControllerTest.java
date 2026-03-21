@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockPart;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -60,19 +62,23 @@ class ApplicationControllerTest {
                 "John Candidate",
                 "I am very interested in this role.",
                 LocalDateTime.now(),
-                ApplicationStatus.SUBMITTED
+                ApplicationStatus.SUBMITTED,
+                null
         );
 
-        when(service.applyForJob(eq("job-001"), eq("candidate@test.com"), any(ApplicationRequestDto.class)))
+        when(service.applyForJob(eq("job-001"), eq("candidate@test.com"), any(ApplicationRequestDto.class), any()))
                 .thenReturn(responseDto);
 
         String applyJson = """
                 {"coverNote":"I am very interested in this role."}
                 """;
 
-        mockMvc.perform(post("/api/jobAds/job-001/apply")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(applyJson)
+        MockPart requestPart = new MockPart("request",
+                "{\"coverNote\":\"I am very interested in this role.\"}".getBytes());
+        requestPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(multipart("/api/jobAds/job-001/apply")
+                        .part(requestPart)
                         .with(jwt().jwt(j -> j.subject("candidate@test.com"))
                                 .authorities(new SimpleGrantedAuthority("ROLE_CANDIDATE"))))
                 .andDo(print())

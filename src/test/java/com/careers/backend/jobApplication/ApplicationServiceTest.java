@@ -45,11 +45,12 @@ class ApplicationServiceTest {
                 "John Candidate",
                 "I am interested in this job",
                 LocalDateTime.now(),
-                ApplicationStatus.SUBMITTED
+                ApplicationStatus.SUBMITTED,
+                null
         );
         when(repository.save(any())).thenReturn(savedApplication);
 
-        ApplicationResponseDto result = service.applyForJob("job1","candidate@test.com",requestDto);
+        ApplicationResponseDto result = service.applyForJob("job1","candidate@test.com",requestDto,null);
         assertThat(result.jobAdId()).isEqualTo("job1");
         assertThat(result.candidateEmail()).isEqualTo("candidate@test.com");
         assertThat(result.candidateName()).isEqualTo("John Candidate");
@@ -66,7 +67,7 @@ class ApplicationServiceTest {
         when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(candidate));
         when(repository.existsByJobAdIdAndCandidateEmail("job-001", "candidate@test.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.applyForJob("job-001", "candidate@test.com", request))
+        assertThatThrownBy(() -> service.applyForJob("job-001", "candidate@test.com", request,null))
                 .isInstanceOf(DuplicateApplicationException.class);
     }
 

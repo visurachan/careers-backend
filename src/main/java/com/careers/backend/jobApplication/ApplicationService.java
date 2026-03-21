@@ -6,12 +6,14 @@ import com.careers.backend.common.exception.DuplicateApplicationException;
 import com.careers.backend.jobAdvert.JobAdNotFoundException;
 import com.careers.backend.jobAdvert.JobAdRepository;
 import com.careers.backend.jobAdvert.JobAdvert;
+import com.careers.backend.s3.S3Service;
 import org.springframework.boot.autoconfigure.batch.BatchProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -21,20 +23,28 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final ApplicationRepository repository;
     private final JobAdRepository jobAdRepository;
+    private final S3Service s3Service;
 
-    public ApplicationService(UserRepository userRepository, ApplicationRepository repository, JobAdRepository jobAdRepository) {
+    public ApplicationService(UserRepository userRepository, ApplicationRepository repository, JobAdRepository jobAdRepository, S3Service s3Service) {
         this.userRepository = userRepository;
         this.repository = repository;
         this.jobAdRepository = jobAdRepository;
+        this.s3Service = s3Service;
     }
 
 
-    public ApplicationResponseDto applyForJob(String jobAdId, String candidateEmail, ApplicationRequestDto request) {
+    public ApplicationResponseDto applyForJob(String jobAdId, String candidateEmail, ApplicationRequestDto request, MultipartFile cv) {
         User candidate = userRepository.findByEmail(candidateEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (repository.existsByJobAdIdAndCandidateEmail(jobAdId, candidateEmail)) {
             throw new DuplicateApplicationException();
+        }
+
+        String cvS3Key = null;
+
+        if (cv != null && !cv.isEmpty()){
+            cvS3Key = s3Service.uploadCv(cv);
         }
         JobApplication application = new JobApplication(
                 null,
@@ -43,10 +53,16 @@ public class ApplicationService {
                 candidate.getName(),
                 request.coverNote(),
                 LocalDateTime.now(),
-                ApplicationStatus.SUBMITTED
+                ApplicationStatus.SUBMITTED,
+                cvS3Key
         );
 
         JobApplication saved = repository.save(application);
+
+        String cvDownloadUrl = null;
+        if (saved.getCvS3Key() != null){
+            cvDownloadUrl = s3Service.generatePresignedUrl(saved.getCvS3Key());
+        }
 
         return new ApplicationResponseDto(
                 saved.getId(),
@@ -55,7 +71,8 @@ public class ApplicationService {
                 saved.getCandidateName(),
                 saved.getCoverNote(),
                 saved.getAppliedAt(),
-                saved.getStatus()
+                saved.getStatus(),
+                cvDownloadUrl
         );
     }
 
@@ -135,7 +152,8 @@ public class ApplicationService {
                 saved.getCandidateName(),
                 saved.getCoverNote(),
                 saved.getAppliedAt(),
-                saved.getStatus()
+                saved.getStatus(),
+                null
         );
     }
 }

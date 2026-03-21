@@ -10,10 +10,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +32,7 @@ public class ApplicationController {
         this.service = service;
     }
 
-    @PostMapping("/{id}/apply")
+    @PostMapping(value = "/{id}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Apply for a job",
             description = "Submit a job application for a specific job ad. **Requires authentication.** " +
@@ -64,9 +66,10 @@ public class ApplicationController {
     public ResponseEntity<ApplicationResponseDto> applyForJob(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody ApplicationRequestDto request) {
+            @RequestPart("request") ApplicationRequestDto request,
+            @RequestPart(value = "cv", required = false) MultipartFile cv){
         String email = jwt.getSubject();
-        ApplicationResponseDto response = service.applyForJob(id, email, request);
+        ApplicationResponseDto response = service.applyForJob(id, email, request,cv);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

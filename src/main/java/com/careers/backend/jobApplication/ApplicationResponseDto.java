@@ -9,7 +9,8 @@ public record ApplicationResponseDto (
     String candidateName,
     String coverNote,
     LocalDateTime appliedAt,
-    ApplicationStatus status
+    ApplicationStatus status,
+    String cvDownloadUrl
 
     ){}
 
