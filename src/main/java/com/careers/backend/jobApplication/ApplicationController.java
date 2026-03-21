@@ -1,6 +1,8 @@
 package com.careers.backend.jobApplication;
 
 import com.careers.backend.jobAdvert.PageResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,9 +29,11 @@ import java.util.stream.Collectors;
 public class ApplicationController {
 
     private final ApplicationService service;
+    private final ObjectMapper objectMapper;
 
-    public ApplicationController(ApplicationService service) {
+    public ApplicationController(ApplicationService service, ObjectMapper objectMapper) {
         this.service = service;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping(value = "/{id}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -63,13 +67,16 @@ public class ApplicationController {
                     description = "Internal server error"
             )
     })
+
     public ResponseEntity<ApplicationResponseDto> applyForJob(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
-            @RequestPart("request") ApplicationRequestDto request,
-            @RequestPart(value = "cv", required = false) MultipartFile cv){
+            @RequestPart("request") String requestJson,
+            @RequestPart(value = "cv", required = false) MultipartFile cv) throws JsonProcessingException {
         String email = jwt.getSubject();
-        ApplicationResponseDto response = service.applyForJob(id, email, request,cv);
+        ObjectMapper objectMapper = new ObjectMapper();
+        ApplicationRequestDto request = objectMapper.readValue(requestJson, ApplicationRequestDto.class);
+        ApplicationResponseDto response = service.applyForJob(id, email, request, cv);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
