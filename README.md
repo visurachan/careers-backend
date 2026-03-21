@@ -14,7 +14,6 @@ Swagger UI (Production):
 **Note:**
 - The service runs on Render (free tier).
 - If inactive, please wait ~30–60 seconds for the application to initialize.
-- Basic authentication is enabled.
 
 **Authentication:**  
 JWT authentication is required for protected endpoints. Register via `/api/auth/registerNewUser`, login via `/api/auth/login` to get a token, then use the Authorize button (🔓) in Swagger UI.
