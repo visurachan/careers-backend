@@ -281,8 +281,8 @@ class BackendApplicationTests {
         authHeaders.setBearerAuth(candidateToken);
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("request", new HttpEntity<>(
-                "{\"coverNote\":\"I am very interested in this role.\"}",
+        body.add("coverNote", new HttpEntity<>(
+                "I am very interested in this role.",
                 buildJsonHeaders()
         ));
 
@@ -342,20 +342,20 @@ class BackendApplicationTests {
         HttpHeaders authHeaders = new HttpHeaders();
         authHeaders.setBearerAuth(candidateToken);
 
-        MultiValueMap<String, Object> applyBody = new LinkedMultiValueMap<>();
-        applyBody.add("request", new HttpEntity<>(
-                "{\"coverNote\":\"I am very interested in this role.\"}",
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("coverNote", new HttpEntity<>(
+                "I am very interested in this role.",
                 buildJsonHeaders()
         ));
 
         // first application
         restTemplate.exchange("/api/jobAds/job-001/apply", HttpMethod.POST,
-                new HttpEntity<>(applyBody, authHeaders), String.class);
+                new HttpEntity<>(body, authHeaders), String.class);
 
         // second application — should fail
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/jobAds/job-001/apply", HttpMethod.POST,
-                new HttpEntity<>(applyBody, authHeaders), String.class);
+                new HttpEntity<>(body, authHeaders), String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
@@ -391,14 +391,14 @@ class BackendApplicationTests {
         HttpHeaders authHeaders = new HttpHeaders();
         authHeaders.setBearerAuth(candidateToken);
 
-        MultiValueMap<String, Object> applyBody = new LinkedMultiValueMap<>();
-        applyBody.add("request", new HttpEntity<>(
-                "{\"coverNote\":\"I am very interested in this role.\"}",
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("coverNote", new HttpEntity<>(
+                "I am very interested in this role.",
                 buildJsonHeaders()
         ));
 
         restTemplate.exchange("/api/jobAds/job-001/apply", HttpMethod.POST,
-                new HttpEntity<>(applyBody, authHeaders), String.class);
+                new HttpEntity<>(body, authHeaders), String.class);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/api/jobAds/my/applications", HttpMethod.GET,
@@ -443,14 +443,14 @@ class BackendApplicationTests {
         HttpHeaders candidateAuthHeaders = new HttpHeaders();
         candidateAuthHeaders.setBearerAuth(candidateToken);
 
-        MultiValueMap<String, Object> applyBody = new LinkedMultiValueMap<>();
-        applyBody.add("request", new HttpEntity<>(
-                "{\"coverNote\":\"I am very interested in this role.\"}",
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("coverNote", new HttpEntity<>(
+                "I am very interested in this role.",
                 buildJsonHeaders()
         ));
 
         restTemplate.exchange("/api/jobAds/job-001/apply", HttpMethod.POST,
-                new HttpEntity<>(applyBody, candidateAuthHeaders), String.class);
+                new HttpEntity<>(body, candidateAuthHeaders), String.class);
 
         // company views applications
         ResponseEntity<String> response = restTemplate.exchange(
@@ -495,15 +495,15 @@ class BackendApplicationTests {
         HttpHeaders candidateAuthHeaders = new HttpHeaders();
         candidateAuthHeaders.setBearerAuth(candidateToken);
 
-        MultiValueMap<String, Object> applyBody = new LinkedMultiValueMap<>();
-        applyBody.add("request", new HttpEntity<>(
-                "{\"coverNote\":\"I am very interested in this role.\"}",
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("coverNote", new HttpEntity<>(
+                "I am very interested in this role.",
                 buildJsonHeaders()
         ));
 
         ResponseEntity<String> applyResponse = restTemplate.exchange(
                 "/api/jobAds/job-001/apply", HttpMethod.POST,
-                new HttpEntity<>(applyBody, candidateAuthHeaders), String.class);
+                new HttpEntity<>(body, candidateAuthHeaders), String.class);
 
         System.out.println("Apply response: " + applyResponse.getBody());
         System.out.println("Apply status: " + applyResponse.getStatusCode());

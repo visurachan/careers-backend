@@ -88,6 +88,11 @@ public class ApplicationService {
             User company = userRepository.findByEmail(jobAd.getPostedBy())
                     .orElseThrow();
 
+            String cvDownloadUrl = null;
+            if (application.getCvS3Key() != null) {
+                cvDownloadUrl = s3Service.generatePresignedUrl(application.getCvS3Key());
+            }
+
             return new JobApplicationDtoCandidateView(
                     application.getId(),
                     application.getJobAdId(),
@@ -95,7 +100,8 @@ public class ApplicationService {
                     company.getName(),
                     application.getCoverNote(),
                     application.getAppliedAt(),
-                    application.getStatus()
+                    application.getStatus(),
+                    cvDownloadUrl
             );
 
         });
@@ -115,16 +121,25 @@ public class ApplicationService {
 
         Page<JobApplication> applications = repository.findByJobAdId(jobAdId, pageable);
 
-        return applications.map(application -> new JobApplicationDtoCompanyView(
-                application.getId(),
-                jobAd.getTitle(),
-                application.getCandidateName(),
-                application.getCandidateEmail(),
-                application.getCoverNote(),
-                application.getAppliedAt(),
-                application.getStatus()
-        ));
+        return applications.map(application -> {
+            String cvDownloadUrl = null;
+            if (application.getCvS3Key() != null) {
+                cvDownloadUrl = s3Service.generatePresignedUrl(application.getCvS3Key());
+            }
+
+            return new JobApplicationDtoCompanyView(
+                    application.getId(),
+                    jobAd.getTitle(),
+                    application.getCandidateName(),
+                    application.getCandidateEmail(),
+                    application.getCoverNote(),
+                    application.getAppliedAt(),
+                    application.getStatus(),
+                    cvDownloadUrl
+            );
+        });
     }
+
 
     public ApplicationResponseDto changeApplicationStatus(String email, String id, Long applicationId, ApplicationStatusUpdateDto request) {
 
@@ -144,6 +159,10 @@ public class ApplicationService {
         application.setStatus(request.status());
         JobApplication saved = repository.save(application);
 
+        String cvDownloadUrl = null;
+        if (saved.getCvS3Key() != null) {
+            cvDownloadUrl = s3Service.generatePresignedUrl(saved.getCvS3Key());
+        }
 
         return new ApplicationResponseDto(
                 saved.getId(),
@@ -153,7 +172,7 @@ public class ApplicationService {
                 saved.getCoverNote(),
                 saved.getAppliedAt(),
                 saved.getStatus(),
-                null
+                cvDownloadUrl
         );
     }
 }

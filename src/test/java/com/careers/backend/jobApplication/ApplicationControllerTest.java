@@ -69,16 +69,11 @@ class ApplicationControllerTest {
         when(service.applyForJob(eq("job-001"), eq("candidate@test.com"), any(ApplicationRequestDto.class), any()))
                 .thenReturn(responseDto);
 
-        String applyJson = """
-                {"coverNote":"I am very interested in this role."}
-                """;
-
-        MockPart requestPart = new MockPart("request",
-                "{\"coverNote\":\"I am very interested in this role.\"}".getBytes());
-        requestPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        MockPart coverNotePart = new MockPart("coverNote",
+                "I am very interested in this role.".getBytes());
 
         mockMvc.perform(multipart("/api/jobAds/job-001/apply")
-                        .part(requestPart)
+                        .part(coverNotePart)
                         .with(jwt().jwt(j -> j.subject("candidate@test.com"))
                                 .authorities(new SimpleGrantedAuthority("ROLE_CANDIDATE"))))
                 .andDo(print())
@@ -89,4 +84,5 @@ class ApplicationControllerTest {
                 .andExpect(jsonPath("$.coverNote").value("I am very interested in this role."))
                 .andExpect(jsonPath("$.status").value("SUBMITTED"));
     }
+
 }

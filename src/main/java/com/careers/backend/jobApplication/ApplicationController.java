@@ -29,11 +29,11 @@ import java.util.stream.Collectors;
 public class ApplicationController {
 
     private final ApplicationService service;
-    private final ObjectMapper objectMapper;
 
-    public ApplicationController(ApplicationService service, ObjectMapper objectMapper) {
+
+    public ApplicationController(ApplicationService service) {
         this.service = service;
-        this.objectMapper = objectMapper;
+
     }
 
     @PostMapping(value = "/{id}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -68,14 +68,14 @@ public class ApplicationController {
             )
     })
 
+
     public ResponseEntity<ApplicationResponseDto> applyForJob(
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt,
-            @RequestPart("request") String requestJson,
-            @RequestPart(value = "cv", required = false) MultipartFile cv) throws JsonProcessingException {
+            @RequestPart("coverNote") String coverNote,
+            @RequestPart(value = "cv", required = false) MultipartFile cv) {
         String email = jwt.getSubject();
-        ObjectMapper objectMapper = new ObjectMapper();
-        ApplicationRequestDto request = objectMapper.readValue(requestJson, ApplicationRequestDto.class);
+        ApplicationRequestDto request = new ApplicationRequestDto(coverNote);
         ApplicationResponseDto response = service.applyForJob(id, email, request, cv);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

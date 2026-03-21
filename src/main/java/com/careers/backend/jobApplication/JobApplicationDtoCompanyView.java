@@ -10,7 +10,8 @@ public record JobApplicationDtoCompanyView(
         String candidateEmail,
         String coverNote,
         LocalDateTime appliedAt,
-        ApplicationStatus status
+        ApplicationStatus status,
+        String cvDownloadUrl
 
 
 ) { }
