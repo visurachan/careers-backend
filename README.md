@@ -6,6 +6,36 @@ It is built using modern backend engineering practices including **Test-Driven D
 
 ---
 
+## 🌍 Live Application
+
+Swagger UI (Production):  
+👉 https://careers-backend-5enq.onrender.com/swagger-ui/index.html
+
+**Note:**
+- The service runs on Render (free tier).
+- If inactive, please wait ~30–60 seconds for the application to initialize.
+- Basic authentication is enabled.
+
+**Authentication:**  
+JWT authentication is required for protected endpoints. Register via `/api/auth/registerNewUser`, login via `/api/auth/login` to get a token, then use the Authorize button (🔓) in Swagger UI.
+
+## 📋 API Endpoints
+
+| Method | Endpoint                      | Description                                     | Status            |
+|--------|-------------------------------|-------------------------------------------------|-------------------|
+| GET    | `/api/jobAds/{id}`            | Retrieve specific job advertisement             | ✅ Live            |
+| GET    | `/api/jobAds`                 | List all job advertisements                     | ✅ Live            |
+| POST   | `/api/jobAds`                 | Post a new job advertisement                    | ✅ Live            |
+| POST   | `/api/auth/registerNewUser`   | Register a new User                             | ✅ Live            |
+| POST   | `/api/auth/login`             | Login and receive JWT Token                     | ✅ Live            |
+| POST   | `/api/ jobAds/{id}/apply`     | Submit a job application with optional cv.pdf   | ✅ Live            |
+| GET    | `/api/jobAds/my/applications` | Candidate views thier applications              | ✅ Live            |
+| GET    | `/api/jobAds/{id}/applications` | Company view job applications                   |            ✅ Live |
+| PATCH  | `/api/jobAds/{id}/applications/{applicationId}/status`| Company can update the status of an application |         ✅ Live          |
+
+
+*API expanding incrementally with new features*
+
 ## 🎯 What Makes This Project Different
 
 This isn't just another CRUD application. This project demonstrates **real-world engineering practices** used by professional development teams:
@@ -37,35 +67,7 @@ This project serves as a **living demonstration** of:
 - How TDD guides better design decisions
 - How to deploy continuously with confidence
 
-## 🌍 Live Application
 
-Swagger UI (Production):  
-👉 https://careers-backend-5enq.onrender.com/swagger-ui/index.html
-
-**Note:**
-- The service runs on Render (free tier).
-- If inactive, please wait ~30–60 seconds for the application to initialize.
-- Basic authentication is enabled.
-
-**Authentication:**  
-JWT authentication is required for protected endpoints. Register via `/api/auth/registerNewUser`, login via `/api/auth/login` to get a token, then use the Authorize button (🔓) in Swagger UI.
-
-## 📋 API Endpoints
-
-| Method | Endpoint                      | Description                                     | Status            |
-|--------|-------------------------------|-------------------------------------------------|-------------------|
-| GET    | `/api/jobAds/{id}`            | Retrieve specific job advertisement             | ✅ Live            |
-| GET    | `/api/jobAds`                 | List all job advertisements                     | ✅ Live            |
-| POST   | `/api/jobAds`                 | Post a new job advertisement                    | ✅ Live            |
-| POST   | `/api/auth/registerNewUser`   | Register a new User                             | ✅ Live            |
-| POST   | `/api/auth/login`             | Login and receive JWT Token                     | ✅ Live            |
-| POST   | `/api/ jobAds/{id}/apply`     | Submit a job application with optional cv.pdf   | ✅ Live            |
-| GET    | `/api/jobAds/my/applications` | Candidate views thier applications              | ✅ Live            |
-| GET    | `/api/jobAds/{id}/applications` | Company view job applications                   |            ✅ Live |
-| PATCH  | `/api/jobAds/{id}/applications/{applicationId}/status`| Company can update the status of an application |         ✅ Live          |
-
-
-*API expanding incrementally with new features*
 
 ---
 
